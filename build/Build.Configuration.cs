@@ -14,7 +14,7 @@
 
         InstallersMap = new()
         {
-            {Solution.Installer, Solution.IB}
+            {Solution.Installer, Solution.Core}
         };
     }
 }
