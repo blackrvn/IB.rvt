@@ -1,0 +1,11 @@
+﻿<RevitAddIns>
+    <AddIn Type="Application">
+        <Name>IB</Name>
+        <Assembly>Core/Core.dll</Assembly>
+        <AddInId>E9CC03A8-B07F-4EE3-8E7F-EB0602EBB358</AddInId>
+        <FullClassName>Core.Application</FullClassName>
+        <VendorId>iblto</VendorId>
+        <VendorDescription>Lukas Tobler | iblto</VendorDescription>
+        <VendorEmail>l.tobler@ittenbrechbuehl.ch</VendorEmail>
+    </AddIn>
+</RevitAddIns>
