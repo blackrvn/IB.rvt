@@ -19,11 +19,6 @@
 		<StartProgram>C:\Program Files\Autodesk\Revit $(RevitVersion)\Revit.exe</StartProgram>
 		<StartArguments>/language ENG</StartArguments>
 	</PropertyGroup>
-
-	<PropertyGroup Condition="$(Configuration.Contains('R24'))">
-		<RevitVersion>2024</RevitVersion>
-		<TargetFramework>net48</TargetFramework>
-	</PropertyGroup>
 	
 
     <ItemGroup>

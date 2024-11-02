@@ -21,7 +21,7 @@ namespace Core
 
         public override async void OnStartup()
         {
-            // await CheckForUpdates();
+            await CheckForUpdates();
 
             TabName = "IB";
             Application.CreateRibbonTab(TabName);
