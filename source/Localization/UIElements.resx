@@ -118,6 +118,21 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Utils_PanelName" xml:space="preserve">
-    <value />
+    <value>Utils</value>
+  </data>
+  <data name="Update_UpdateMessage" xml:space="preserve">
+    <value>Version {0} is now available!</value>
+  </data>
+  <data name="Update_UpdateNow" xml:space="preserve">
+    <value>Download now</value>
+  </data>
+  <data name="Update_UpdateLater" xml:space="preserve">
+    <value>Later on</value>
+  </data>
+  <data name="Update_UpdateHeader" xml:space="preserve">
+    <value>New Version!</value>
+  </data>
+  <data name="Update_DownloadMessage" xml:space="preserve">
+    <value>The update file has been downloaded! Please execute it.</value>
   </data>
 </root>

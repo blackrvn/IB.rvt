@@ -45,7 +45,7 @@ sealed partial class Build
         if (latestTag == GitRepository.Commit) return;
 
         Assert.False(latestTag == Version, $"A Release with the specified tag already exists in the repository: {Version}");
-        Log.Information("Version: {Version}", Version);
+        Log.Information("PlugInVersion: {PlugInVersion}", Version);
     }
 
     static async Task UploadArtifactsAsync(Release release, IEnumerable<string> artifacts)
@@ -77,7 +77,7 @@ sealed partial class Build
         var changelog = BuildChangelog();
         if (changelog.Length == 0)
         {
-            Log.Warning("No version entry exists in the changelog: {Version}", Version);
+            Log.Warning("No version entry exists in the changelog: {PlugInVersion}", Version);
             return string.Empty;
         }
 

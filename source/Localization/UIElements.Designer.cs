@@ -61,7 +61,52 @@ namespace Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to The update file has been downloaded! Please execute it..
+        /// </summary>
+        public static string Update_DownloadMessage {
+            get {
+                return ResourceManager.GetString("Update_DownloadMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Version!.
+        /// </summary>
+        public static string Update_UpdateHeader {
+            get {
+                return ResourceManager.GetString("Update_UpdateHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Later on.
+        /// </summary>
+        public static string Update_UpdateLater {
+            get {
+                return ResourceManager.GetString("Update_UpdateLater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Version {0} is now available!.
+        /// </summary>
+        public static string Update_UpdateMessage {
+            get {
+                return ResourceManager.GetString("Update_UpdateMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Update now.
+        /// </summary>
+        public static string Update_UpdateNow {
+            get {
+                return ResourceManager.GetString("Update_UpdateNow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Utils.
         /// </summary>
         public static string Utils_PanelName {
             get {

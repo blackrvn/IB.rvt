@@ -6,7 +6,7 @@
         <PlatformTarget>x64</PlatformTarget>
         <ImplicitUsings>true</ImplicitUsings>
         <PublishAddinFiles>true</PublishAddinFiles>
-        <Configurations>Debug R24</Configurations>
+        <Configurations>Debug R24;Release R24</Configurations>
         <Configurations>$(Configurations);Release R24</Configurations>
     </PropertyGroup>
 
@@ -29,6 +29,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Compile Include="..\..\Constants.cs" Link="Constants.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageReference Include="Nice3point.Revit.Build.Tasks" Version="2.*" />
         <PackageReference Include="Nice3point.Revit.Toolkit" Version="$(RevitVersion).*" />
@@ -38,6 +42,9 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\Libs\Library\Library.csproj">
+        <ReferenceOutputAssembly>True</ReferenceOutputAssembly>
+      </ProjectReference>
       <ProjectReference Include="..\Localization\Localization.csproj" />
       <ProjectReference Include="..\Utils\SelectSimilar\SelectSimilar.csproj" />
     </ItemGroup>
@@ -57,6 +64,10 @@
         <Resource Include="Resources\Icons\SelectSimilar_SettingsImageSmall.png">
           <CopyToOutputDirectory>Never</CopyToOutputDirectory>
         </Resource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Properties\" />
     </ItemGroup>
 
 </Project>

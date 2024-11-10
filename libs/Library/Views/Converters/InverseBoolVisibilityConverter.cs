@@ -3,7 +3,7 @@ using System.Windows.Data;
 using System.Windows.Markup;
 using Visibility = System.Windows.Visibility;
 
-namespace SelectSimilar.Views.Converters
+namespace Library.Views.Converters
 {
     public class InverseBoolVisibilityConverter : MarkupExtension, IValueConverter
     {

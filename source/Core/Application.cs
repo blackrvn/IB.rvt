@@ -5,8 +5,8 @@ using Localization;
 using Autodesk.Revit.ApplicationServices;
 using System.Globalization;
 using SelectSimilar.Views.Converters;
-using Newtonsoft.Json.Linq;
-using System.Net.Http;
+using Core.Management;
+using Autodesk.Revit.Creation;
 
 namespace Core
 {
@@ -21,9 +21,10 @@ namespace Core
 
         public override async void OnStartup()
         {
-            await CheckForUpdates();
+            UpdateManager updateManager = new();
+            await updateManager.CheckForUpdates(Application.ControlledApplication);
 
-            TabName = "IB";
+            TabName = "IB+";
             Application.CreateRibbonTab(TabName);
             CreateRibbon();
         }
@@ -31,7 +32,7 @@ namespace Core
         private void CreateRibbon()
         {
             LanguageType languageType  = Application.ControlledApplication.Language;
-            AutodeskLanguageConverter converter = new AutodeskLanguageConverter();
+            AutodeskLanguageConverter converter = new();
             CultureInfo cultureInfo = converter.Convert(languageType);
             Thread.CurrentThread.CurrentUICulture = cultureInfo;
 
@@ -51,26 +52,7 @@ namespace Core
 
         }
 
-        public async Task CheckForUpdates()
-        {
-            string currentVersion = "1.0.0"; // Deine aktuelle Plugin-Version
-            string url = "https://api.github.com/repos/<blackrvn>/<IB.rvt>/releases/latest";
 
-            using (HttpClient client = new())
-            {
-                client.DefaultRequestHeaders.Add("User-Agent", "Dein-Plugin-Name");
 
-                var response = await client.GetStringAsync(url);
-                JObject release = JObject.Parse(response);
-
-                string latestVersion = release["tag_name"].ToString();
-
-                if (currentVersion != latestVersion)
-                {
-                    // Benutzer benachrichtigen
-                    System.Windows.MessageBox.Show($"Eine neue Version {latestVersion} ist verfügbar! Besuche GitHub, um sie herunterzuladen.");
-                }
-            }
-        }
     }
 }

@@ -2,7 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace SelectSimilar.Views.UserControls
+namespace Library.Views.UserControls
 {
     public partial class SearchBox : UserControl
     {

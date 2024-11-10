@@ -8,7 +8,7 @@ using Localization;
 using SelectSimilar.Models;
 using System.Diagnostics;
 using System.Windows.Data;
-using SelectSimilar.Views.UserControls;
+using Library.Views.UserControls;
 
 namespace SelectSimilar.ViewModels
 {

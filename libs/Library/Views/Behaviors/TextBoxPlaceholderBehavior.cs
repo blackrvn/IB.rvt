@@ -1,10 +1,9 @@
-﻿using SelectSimilar.Views.UserControls;
+﻿using Library.Views.UserControls;
 using System.Diagnostics;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 
-namespace SelectSimilar.Views.Behaviors
+namespace Library.Views.Behaviors
 {
     public static class TextBoxPlaceholderBehavior
     {

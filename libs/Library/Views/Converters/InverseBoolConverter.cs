@@ -1,20 +1,19 @@
 ﻿using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Markup;
-using Visibility = System.Windows.Visibility;
 
-namespace SelectSimilar.Views.Converters
+namespace Library.Views.Converters
 {
-    public class BoolVisibilityConverter : MarkupExtension, IValueConverter
+    public class InverseBoolConverter : MarkupExtension, IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return (bool)value! ? Visibility.Visible : Visibility.Hidden;
+            return !(bool)value!;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return (Visibility)value! == Visibility.Visible;
+            return !(bool)value!;
         }
 
         public override object ProvideValue(IServiceProvider serviceProvider)

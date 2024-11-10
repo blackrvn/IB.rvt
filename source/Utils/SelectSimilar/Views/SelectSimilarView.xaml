@@ -4,9 +4,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:viewModel="clr-namespace:SelectSimilar.ViewModels"
-    xmlns:userControls="clr-namespace:SelectSimilar.Views.UserControls"
-    xmlns:behavior="clr-namespace:SelectSimilar.Views.Behaviors"
+    xmlns:viewModel="clr-namespace:SelectSimilar.ViewModels;assembly=SelectSimilar"
+    xmlns:userControls="clr-namespace:Library.Views.UserControls;assembly=Library"
+    xmlns:behavior="clr-namespace:Library.Views.Behaviors;assembly=Library"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance viewModel:SelectSimilarViewModel}"
     ResizeMode="NoResize"
@@ -14,12 +14,14 @@
     Title="{Binding CommandName}"
     Height="450"
     Width="800">
+
     <Window.Resources>
-        <ResourceDictionary Source="Styles.xaml"/>
+        <ResourceDictionary Source="pack://application:,,,/Library;component/Views/Styles/MergedStyles.xaml" />
     </Window.Resources>
 
     <Grid Margin="10" ShowGridLines="False">
         <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
             <RowDefinition Height="40"/>
             <RowDefinition Height="3*"/>
             <RowDefinition Height="*"/>
@@ -30,8 +32,7 @@
             <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
 
-
-        <ListBox ItemsSource="{Binding BuiltInParameterCheckBoxes}" Grid.Row="1">
+        <ListBox ItemsSource="{Binding BuiltInParameterCheckBoxes}" Grid.Row="2">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel>
@@ -41,7 +42,7 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <ListBox ItemsSource="{Binding CustomParameterCheckBoxes}" Grid.Column="1" Grid.Row="1">
+        <ListBox ItemsSource="{Binding CustomParameterCheckBoxes}" Grid.Column="1" Grid.Row="2">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel>
@@ -51,7 +52,7 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <ListBox ItemsSource="{Binding GeneralParameterCheckBoxes}" Grid.Column="2" Grid.Row="1">
+        <ListBox ItemsSource="{Binding GeneralParameterCheckBoxes}" Grid.Column="2" Grid.Row="2">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel>

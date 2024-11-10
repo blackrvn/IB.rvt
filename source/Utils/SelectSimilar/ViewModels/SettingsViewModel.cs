@@ -7,7 +7,6 @@ using System.Windows.Data;
 using Localization;
 using Newtonsoft.Json;
 using SelectSimilar.Models;
-using SelectSimilar.Views.UserControls;
 
 namespace SelectSimilar.ViewModels
 {

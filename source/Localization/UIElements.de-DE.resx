@@ -120,4 +120,19 @@
   <data name="Utils_PanelName" xml:space="preserve">
     <value>Werkzeuge</value>
   </data>
+  <data name="Update_UpdateMessage" xml:space="preserve">
+    <value>Version {0} ist jetzt verfügbar!</value>
+  </data>
+  <data name="Update_UpdateNow" xml:space="preserve">
+    <value>Jetzt herunterladen</value>
+  </data>
+  <data name="Update_UpdateLater" xml:space="preserve">
+    <value>Später erinnern</value>
+  </data>
+  <data name="Update_UpdateHeader" xml:space="preserve">
+    <value>Neue Version!</value>
+  </data>
+  <data name="Update_DownloadMessage" xml:space="preserve">
+    <value>Die Update-Datei wurde heruntergeladen! Bitte führen Sie sie aus.</value>
+  </data>
 </root>

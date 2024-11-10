@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -9,16 +9,21 @@
         <NukeRootDirectory>..</NukeRootDirectory>
         <NukeScriptDirectory>..</NukeScriptDirectory>
         <NukeTelemetryVersion>1</NukeTelemetryVersion>
+        <Configurations>Debug;Release</Configurations>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Nuke.Common" Version="8.0.0"/>
-</ItemGroup>
+      <Compile Include="..\Constants.cs" Link="Constants.cs" />
+    </ItemGroup>
 
     <ItemGroup>
-        <Using Include="Nuke.Common"/>
-        <Using Include="Nuke.Common.IO"/>
-        <Using Include="Serilog"/>
+        <PackageReference Include="Nuke.Common" Version="8.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Nuke.Common" />
+        <Using Include="Nuke.Common.IO" />
+        <Using Include="Serilog" />
     </ItemGroup>
 
 </Project>

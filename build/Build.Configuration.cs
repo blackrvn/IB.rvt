@@ -1,6 +1,8 @@
-﻿sealed partial class Build
+﻿using static Constants;
+
+sealed partial class Build
 {
-    const string Version = "1.0.0";
+    const string Version = PlugInVersion;
     readonly AbsolutePath ArtifactsDirectory = RootDirectory / "output";
     readonly AbsolutePath ChangeLogPath = RootDirectory / "Changelog.md";
 

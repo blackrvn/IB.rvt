@@ -26,7 +26,7 @@ namespace SelectSimilar.Models
         public Model(UIDocument uiDocument, bool byCategory = false)
         {
             this.UIDocument = uiDocument;
-            this.RevitVersion = Int32.Parse(uiDocument.Document.Application.VersionNumber);
+            //this.RevitVersion = Int32.Parse(uiDocument.Document.Application.VersionNumber);
             if (!byCategory)
             {   
                 Reference refrence = uiDocument.Selection.PickObject(ObjectType.Element);
