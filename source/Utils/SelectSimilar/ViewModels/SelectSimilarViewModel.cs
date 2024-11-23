@@ -2,13 +2,13 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using Autodesk.Revit.DB;
 using Newtonsoft.Json;
 using Localization;
 using SelectSimilar.Models;
 using System.Diagnostics;
 using System.Windows.Data;
 using Library.Views.UserControls;
+using Library.ViewModels;
 
 namespace SelectSimilar.ViewModels
 {
@@ -22,9 +22,11 @@ namespace SelectSimilar.ViewModels
         public long Id { get; set; } = id;
     }
 
-    public partial class SelectSimilarViewModel : ObservableObject
+    public partial class SelectSimilarViewModel : BaseViewModel
     {
         protected Model Model { get; set; }
+
+        protected bool SupressMainDialog { get; set; } = false; 
 
         // ObservableCollections for CheckBoxItems
         public ObservableCollection<CheckBoxItem> BuiltInParameterCheckBoxes { get; set; } = [];
@@ -46,34 +48,32 @@ namespace SelectSimilar.ViewModels
         // Flags for visibility
         protected bool CategoryIsChecked { get; set; }
         protected bool VisibleInViewIsChecked { get; set; }
+        protected bool SuppressMainDialog { get; set; }
 
         // Parameters storage
         protected ParameterSet CheckedParameters { get; set; } = new();
 
         // UI strings
-
-        public string CommandName { get; private set; }
-        public string ButtonOKName { get; private set; }
-        public string ButtonCancelName { get; private set; }
-        public string ButtonApplyName { get; private set; }
         public string ButtonSaveApplyName { get; private set; }
         public string PlaceholderParameters { get; private set; }
 
         [ObservableProperty]
         public string searchTextParameters;
 
+        public string BuiltInParametersHeader { get; private set; }
+        public string CustomParametersHeader { get; private set; }
+        public string GeneralParametersHeader { get; private set; }
+
+
+
+
 
         // Path to Settings.Json
         public string SettingsFilePath { get; private set; }
 
         // Commands
-        public IRelayCommand ApplyCommand { get; private set; }
         public IRelayCommand SaveAndApplyCommand { get; private set; }
-        public IRelayCommand CancelCommand { get; private set; }
-        public IRelayCommand OnMouseHoverCommad {  get; private set; }
         public IRelayCommand ClearCommand { get; private set; }
-
-        public event Action RequestClose;
 
         // Constructor - can be overridden by derived classes
         public SelectSimilarViewModel()
@@ -85,7 +85,10 @@ namespace SelectSimilar.ViewModels
         {
             Model = model;
 
-            InitializeUIStrings(PushButtons.SelectSimilar_MainName);
+            InitializeUIStrings(
+                PushButtons.SelectSimilar_MainName, 
+                DialogElements.General_ButtonApplyName, 
+                DialogElements.General_ButtonCancelName);
             InitializeCommands();
             InitializeSettings();
             InitializeCheckBoxes();
@@ -93,21 +96,23 @@ namespace SelectSimilar.ViewModels
         }
 
         // Protected or virtual methods can be overridden by derived classes
-        public virtual void InitializeUIStrings(string commandName)
+        public override void InitializeUIStrings(string commandName, string okName, string cancelName)
         {
-            CommandName = commandName;
-            ButtonOKName = DialogElements.Generl_ButtonOkName;
-            ButtonCancelName = DialogElements.General_ButtonCancelName;
-            ButtonApplyName = DialogElements.General_ButtonApplyName;
+            base.InitializeUIStrings(commandName, okName, cancelName);
+
             ButtonSaveApplyName = DialogElements.General_ButtonSaveApplyName;
             PlaceholderParameters = DialogElements.SelectSimilar_PlaceholderParameters;
+            BuiltInParametersHeader = DialogElements.SelectSimilar_BIPHeader;
+            GeneralParametersHeader = DialogElements.SelectSimilar_GeneralParametersHeader;
+            CustomParametersHeader = DialogElements.SelectSimilar_CustomParametersHeader;
+
         }
 
-        public virtual void InitializeCommands()
+        public override void InitializeCommands()
         {
-            ApplyCommand = new RelayCommand(Apply);
+            base.InitializeCommands();
+
             SaveAndApplyCommand = new RelayCommand(SaveAndApply);
-            CancelCommand = new RelayCommand(Cancel);
             ClearCommand = new RelayCommand<object>(ClearSearchBox);
         }
 
@@ -124,7 +129,7 @@ namespace SelectSimilar.ViewModels
             }
         }
 
-        protected virtual void InitializeCheckBoxes()
+        public virtual void InitializeCheckBoxes()
         {
             var generalIDs = new List<BuiltInParameter>
             {
@@ -150,12 +155,12 @@ namespace SelectSimilar.ViewModels
                 }
             }
 
-            AddVisibleInViewCheckBox();
+            AddNonParametricCheckBoxes();
         }
 
         public virtual void InitializeFiltering()
         {
-
+            
             FilteredBuiltInParameters = CollectionViewSource.GetDefaultView(BuiltInParameterCheckBoxes);
             FilteredCustomParameters = CollectionViewSource.GetDefaultView(CustomParameterCheckBoxes);
             FilteredGeneralParameters = CollectionViewSource.GetDefaultView(GeneralParameterCheckBoxes);
@@ -212,9 +217,10 @@ namespace SelectSimilar.ViewModels
             }
         }
 
-        protected virtual void AddVisibleInViewCheckBox()
+
+        public virtual void AddNonParametricCheckBoxes()
         {
-            var checkBoxIsVisibleInView = new CheckBoxItem(0, DialogElements.SelectSimilar_VisibleInView);
+            CheckBoxItem checkBoxIsVisibleInView = new(0, DialogElements.SelectSimilar_VisibleInView);
 
             if (!StoredSettings.ContainsKey(Model.CurrentCategory.Name))
             {
@@ -223,30 +229,28 @@ namespace SelectSimilar.ViewModels
 
             StoredSettings[Model.CurrentCategory.Name][checkBoxIsVisibleInView.Id] = checkBoxIsVisibleInView;
             GeneralParameterCheckBoxes.Add(checkBoxIsVisibleInView);
+
+            Debug.WriteLine("Added VisibleInView");
+
         }
 
+
         // Methods for commands
-        public virtual void Apply()
+        public override void Ok()
         {
+            base.Ok(); 
             Model.Filter(CheckedParameters, CategoryIsChecked, VisibleInViewIsChecked);
-            RequestClose?.Invoke();
         }
 
         public virtual void SaveAndApply()
         {
             string jsonString = JsonConvert.SerializeObject(StoredSettings, Formatting.Indented);
             File.WriteAllText(SettingsFilePath, jsonString);
-            Apply();
-        }
-
-        public virtual void Cancel()
-        {
-            Debug.WriteLine("Cancel");
-            RequestClose?.Invoke();
+            Ok();
         }
 
         // Event-Handler for CheckBox changes
-        protected virtual void CheckBox_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        public virtual void CheckBox_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(CheckBoxItem.IsChecked) && sender is CheckBoxItem checkBoxItem)
             {
@@ -265,7 +269,7 @@ namespace SelectSimilar.ViewModels
         }
 
         // Handle CheckBox changes
-        protected virtual void HandleCheckBoxChange(CheckBoxItem checkBoxItem)
+        public virtual void HandleCheckBoxChange(CheckBoxItem checkBoxItem)
         {
             if (checkBoxItem.Name == DialogElements.SelectSimilar_VisibleInView)
             {

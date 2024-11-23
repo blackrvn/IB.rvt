@@ -129,6 +129,10 @@
   <data name="General_ButtonSaveApplyName" xml:space="preserve">
     <value>Salva &amp; applica</value>
   </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="Generl_ButtonOkName" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
   <data name="SelectSimilar_Message" xml:space="preserve">
     <value>In questo documento non esistono né istanze né tipi di questa categoria.</value>
   </data>
@@ -137,5 +141,20 @@
   </data>
   <data name="SelectSimilar_PlaceholderCategories" xml:space="preserve">
     <value>Ricerca per categorie...</value>
+  </data>
+  <data name="SelectSimilar_BIPHeader" xml:space="preserve">
+    <value>Parametri integrati</value>
+  </data>
+  <data name="SelectSimilar_GeneralParametersHeader" xml:space="preserve">
+    <value>Parametri generali</value>
+  </data>
+  <data name="SelectSimilar_CustomParametersHeader" xml:space="preserve">
+    <value>Parametri personalizzati</value>
+  </data>
+  <data name="SelectSimilar_CategoriesHeader" xml:space="preserve">
+    <value>Categorie</value>
+  </data>
+  <data name="SelectSimilar_Suppress" xml:space="preserve">
+    <value>Sopprimere il dialogo principale</value>
   </data>
 </root>

@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace Library.Views.UserControls
 {
@@ -34,5 +35,40 @@ namespace Library.Views.UserControls
             get => (ICommand)GetValue(ClearCommandProperty);
             set => SetValue(ClearCommandProperty, value);
         }
+
+
+        public CornerRadius CornerRadius
+        {
+            get { return (CornerRadius)GetValue(CornerRadiusProperty); }
+            set { SetValue(CornerRadiusProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for CornerRadius.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty CornerRadiusProperty =
+            DependencyProperty.Register("CornerRadius", typeof(CornerRadius), typeof(SearchBox), new PropertyMetadata(new CornerRadius(10)));
+
+
+
+        public new Brush BorderBrush
+        {
+            get { return (Brush)GetValue(BorderBrushProperty); }
+            set { SetValue(BorderBrushProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for BorderBrush.  This enables animation, styling, binding, etc...
+        public static new readonly DependencyProperty BorderBrushProperty =
+            DependencyProperty.Register("BorderBrush", typeof(Brush), typeof(SearchBox), new PropertyMetadata(Brushes.Gray));
+
+
+
+        public new Thickness BorderThickness
+        {
+            get { return (Thickness)GetValue(BorderThicknessProperty); }
+            set { SetValue(BorderThicknessProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for BorderThickness.  This enables animation, styling, binding, etc...
+        public static new readonly DependencyProperty BorderThicknessProperty =
+            DependencyProperty.Register("BorderThickness", typeof(Thickness), typeof(SearchBox), new PropertyMetadata(new Thickness(1)));
     }
 }

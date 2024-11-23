@@ -21,18 +21,22 @@
         </Style>
     </Control.Resources>
 
-    <Grid>
-        <!-- TextBox with PlaceholderText and SearchText binding -->
-        <TextBox Text="{Binding SearchText, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                 VerticalContentAlignment="Center" HorizontalContentAlignment="Left"
-                 FontSize="12" FontStyle="Italic" FontWeight="Light"
-                 BorderThickness="0"
-                 Background="Transparent"/>
+    <Border BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"
+            BorderThickness="{Binding BorderThickness, RelativeSource={RelativeSource AncestorType=UserControl}}"
+            CornerRadius="{Binding CornerRadius, RelativeSource={RelativeSource AncestorType=UserControl}}">
+        <Grid>
+            <!-- TextBox with PlaceholderText and SearchText binding -->
+            <TextBox Text="{Binding SearchText, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     VerticalContentAlignment="Center" HorizontalContentAlignment="Left"
+                     FontSize="12" FontStyle="Italic" FontWeight="Light"
+                     BorderThickness="0"
+                     Background="Transparent"/>
 
-        <!-- Clear Button with Command Binding -->
-        <Button Content="X"
-                Style="{StaticResource ClearButton}"
-                Command="{Binding ClearCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=UserControl}}"/>
-    </Grid>
+            <!-- Clear Button with Command Binding -->
+            <Button Content="X"
+                    Style="{StaticResource ClearButton}"
+                    Command="{Binding ClearCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+        </Grid>
+    </Border>
 </UserControl>

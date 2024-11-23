@@ -1,22 +1,13 @@
-﻿using SelectSimilar.ViewModels;
+﻿using Library.Views;
+using SelectSimilar.ViewModels;
 
 namespace SelectSimilar.Views
 {
-    public sealed partial class SelectSimilarView
+    public sealed partial class SelectSimilarView : BaseView
     {
-        public SelectSimilarView(SelectSimilarViewModel viewModel)
+        public SelectSimilarView(SelectSimilarViewModel viewModel) : base(viewModel)
         {
-            DataContext = viewModel;
             InitializeComponent();
-            if (viewModel != null)
-            {
-                viewModel.RequestClose += OnRequestClose;
-            }
-        }
-
-        private void OnRequestClose()
-        {
-            this.Close(); // Schließe das Fenster
         }
     }
 }

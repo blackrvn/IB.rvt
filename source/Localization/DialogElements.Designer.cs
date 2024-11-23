@@ -97,6 +97,42 @@ namespace Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Built In Parameters.
+        /// </summary>
+        public static string SelectSimilar_BIPHeader {
+            get {
+                return ResourceManager.GetString("SelectSimilar_BIPHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Categories.
+        /// </summary>
+        public static string SelectSimilar_CategoriesHeader {
+            get {
+                return ResourceManager.GetString("SelectSimilar_CategoriesHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Custom Parameters.
+        /// </summary>
+        public static string SelectSimilar_CustomParametersHeader {
+            get {
+                return ResourceManager.GetString("SelectSimilar_CustomParametersHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to General Parameters.
+        /// </summary>
+        public static string SelectSimilar_GeneralParametersHeader {
+            get {
+                return ResourceManager.GetString("SelectSimilar_GeneralParametersHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No instance or type of this category exists in this document.
         /// </summary>
         public static string SelectSimilar_Message {
@@ -120,6 +156,15 @@ namespace Localization {
         public static string SelectSimilar_PlaceholderParameters {
             get {
                 return ResourceManager.GetString("SelectSimilar_PlaceholderParameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Suppress main dialog.
+        /// </summary>
+        public static string SelectSimilar_Suppress {
+            get {
+                return ResourceManager.GetString("SelectSimilar_Suppress", resourceCulture);
             }
         }
         

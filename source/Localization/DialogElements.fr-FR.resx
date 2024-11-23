@@ -138,4 +138,19 @@
   <data name="SelectSimilar_PlaceholderCategories" xml:space="preserve">
     <value>Catégories de recherche...</value>
   </data>
+  <data name="SelectSimilar_BIPHeader" xml:space="preserve">
+    <value>Paramètres intégrés</value>
+  </data>
+  <data name="SelectSimilar_GeneralParametersHeader" xml:space="preserve">
+    <value>Paramètres généraux</value>
+  </data>
+  <data name="SelectSimilar_CustomParametersHeader" xml:space="preserve">
+    <value>Paramètres personnalisés</value>
+  </data>
+  <data name="SelectSimilar_CategoriesHeader" xml:space="preserve">
+    <value>Catégories</value>
+  </data>
+  <data name="SelectSimilar_Suppress" xml:space="preserve">
+    <value>Supprimer le dialogue principal</value>
+  </data>
 </root>

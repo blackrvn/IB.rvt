@@ -1,27 +1,37 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Windows.Data;
 using Localization;
-using Newtonsoft.Json;
 using SelectSimilar.Models;
 
 namespace SelectSimilar.ViewModels
 {
     public partial class SettingsViewModel : SelectSimilarViewModel
     {
-        public ObservableCollection<Category> CategoryList { get; private set; }
-        public IRelayCommand OkCommand { get; private set; }
+        // Collections
+        public ObservableCollection<Category> CategoryList { get; private set; } = new ObservableCollection<Category>();
+        public ObservableCollection<CheckBoxItem> SettingsCheckBoxes { get; set; } = new ObservableCollection<CheckBoxItem>();
+
+        // Commands
         public IRelayCommand CategoryChangedCommand { get; private set; }
+
+        // UI Strings
+        public string CategoriesHeader { get; private set; }
+        public string PlaceholderCategories { get; private set; }
+        public string SupressMainDialogText { get; set; }
+
+        // Filtered Views
         public ICollectionView FilteredCategories { get; private set; }
-        public string PlaceholderCategories {  get; private set; }
+
+
+        // Observable Properties
         [ObservableProperty]
         private string searchTextCategories;
 
         [ObservableProperty]
         private Category currentCategory;
+
 
         public SettingsViewModel(Model model) : base()
         {
@@ -30,12 +40,18 @@ namespace SelectSimilar.ViewModels
             this.PropertyChanged += Category_Changed;
             currentCategory = Model.UIDocument.Document.Settings.Categories.get_Item(BuiltInCategory.OST_Walls);
 
-            InitializeUIStrings(PushButtons.SelectSimilar_SettingsName);
+            InitializeUIStrings(
+                PushButtons.SelectSimilar_SettingsName,
+                DialogElements.Generl_ButtonOkName,
+                DialogElements.General_ButtonCancelName);
+            CategoriesHeader = DialogElements.SelectSimilar_CategoriesHeader;
             InitializeCommands();
             InitializeSettings();
             InitializeCategoryList();
             InitializeFiltering();
         }
+
+
         public void Category_Changed(object sender, EventArgs e)
         {
             if (sender is SettingsViewModel)
@@ -57,25 +73,39 @@ namespace SelectSimilar.ViewModels
 
         }
 
+        public void AddSuppressCheckBox()
+        {
+            CheckBoxItem suppressCheckBox = new(1, DialogElements.SelectSimilar_Suppress);
+            SettingsCheckBoxes.Add(suppressCheckBox);
+
+            if (!StoredSettings.ContainsKey("0"))
+            {
+                StoredSettings["0"] = [];
+            }
+
+            StoredSettings["0"][suppressCheckBox.Id] = suppressCheckBox;
+
+            suppressCheckBox.PropertyChanged += (sender, e) =>
+            {
+                if (e.PropertyName == nameof(CheckBoxItem.IsChecked))
+                {
+                    SuppressMainDialog = suppressCheckBox.IsChecked;
+                }
+            };
+
+            Debug.WriteLine("Added");
+        }
+
         public void InitializeCategoryList()
         {
-            CategoryList = [];
-
             CategoryList = Model.CreateCategoryList();
         }
 
-        public override void InitializeCommands()
+        public override void InitializeUIStrings(string commandName, string okName, string cancelName)
         {
-            base.InitializeCommands();
-            OkCommand = new RelayCommand(Ok);
-
-        }
-
-        public override void InitializeUIStrings(string commandName)
-        {
-            base.InitializeUIStrings(commandName);
+            base.InitializeUIStrings(commandName, okName, cancelName);
             PlaceholderCategories = DialogElements.SelectSimilar_PlaceholderCategories;
-
+            SupressMainDialogText = DialogElements.SelectSimilar_Suppress;
         }
 
         public override void InitializeFiltering()
@@ -96,12 +126,15 @@ namespace SelectSimilar.ViewModels
             base.InitializeCheckBoxes();
         }
 
-        public void Ok()
+        public override void AddNonParametricCheckBoxes()
         {
-            Debug.WriteLine("OK");
-            string jsonString = JsonConvert.SerializeObject(StoredSettings, Formatting.Indented);
-            File.WriteAllText(SettingsFilePath, jsonString);
-            base.Cancel();
+            base.AddNonParametricCheckBoxes();
+            AddSuppressCheckBox();
+        }
+
+        public override void InitializeCheckBoxes()
+        {
+            base.InitializeCheckBoxes();
         }
 
         public void Clear()

@@ -23,7 +23,9 @@ namespace Core.Management
 
             if (latestRelease != PlugInVersion)
             {
-                ShowUpdateNotification(latestRelease);
+                //ShowUpdateNotification(latestRelease);
+                SendUpdateNotificationToTeams(latestRelease);
+
             }
         }
 
@@ -33,6 +35,11 @@ namespace Core.Management
             CoreViewModel viewModel = new(releaseVersion, GitHubHelper, ControlledApplication);
             UpdateNotification updateNotification = new(viewModel);
             updateNotification.ShowDialog();
+        }
+
+        private void SendUpdateNotificationToTeams(string releaseVersion)
+        {
+
         }
     }
 }
