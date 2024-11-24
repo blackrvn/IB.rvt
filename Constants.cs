@@ -2,5 +2,5 @@
 
 public static class Constants
 {
-    public const string PlugInVersion = "1.0.1";
+    public const string PlugInVersion = "1.1.2";
 }
