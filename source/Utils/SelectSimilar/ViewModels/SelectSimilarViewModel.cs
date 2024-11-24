@@ -26,8 +26,6 @@ namespace SelectSimilar.ViewModels
     {
         protected Model Model { get; set; }
 
-        protected bool SupressMainDialog { get; set; } = false; 
-
         // ObservableCollections for CheckBoxItems
         public ObservableCollection<CheckBoxItem> BuiltInParameterCheckBoxes { get; set; } = [];
         public ObservableCollection<CheckBoxItem> CustomParameterCheckBoxes { get; set; } = [];
@@ -46,12 +44,12 @@ namespace SelectSimilar.ViewModels
         public Dictionary<string, Dictionary<long, CheckBoxItem>> StoredSettings { get; set; } = [];
 
         // Flags for visibility
-        protected bool CategoryIsChecked { get; set; }
-        protected bool VisibleInViewIsChecked { get; set; }
-        protected bool SuppressMainDialog { get; set; }
+        public bool CategoryIsChecked { get; private set; }
+        public bool VisibleInViewIsChecked { get; private set; }
+        public bool SuppressMainDialog { get; private set; }
 
         // Parameters storage
-        protected ParameterSet CheckedParameters { get; set; } = new();
+        public ParameterSet CheckedParameters { get; private set; } = new();
 
         // UI strings
         public string ButtonSaveApplyName { get; private set; }
@@ -91,6 +89,7 @@ namespace SelectSimilar.ViewModels
                 DialogElements.General_ButtonCancelName);
             InitializeCommands();
             InitializeSettings();
+            CheckSupressionMode();
             InitializeCheckBoxes();
             InitializeFiltering();
         }
@@ -106,6 +105,12 @@ namespace SelectSimilar.ViewModels
             GeneralParametersHeader = DialogElements.SelectSimilar_GeneralParametersHeader;
             CustomParametersHeader = DialogElements.SelectSimilar_CustomParametersHeader;
 
+        }
+
+        private void CheckSupressionMode()
+        {
+            CheckBoxItem supressionCheckBox = GetOrCreateCheckBoxItem("0", 1, DialogElements.SelectSimilar_Suppress);
+            SuppressMainDialog = supressionCheckBox.IsChecked;
         }
 
         public override void InitializeCommands()
@@ -140,7 +145,7 @@ namespace SelectSimilar.ViewModels
 
             foreach (Parameter parameter in Model.ParameterSet)
             {
-                var checkBoxItem = GetOrCreateCheckBoxItem(parameter);
+                var checkBoxItem = GetOrCreateCheckBoxItem(parameter.Element.Category.Name, parameter.Id.Value, parameter.Definition.Name);
                 AddCheckBoxToCollections(checkBoxItem, parameter, generalIDs);
 
                 if (!ParameterIdMapping.ContainsKey(Math.Abs(parameter.Id.Value)))
@@ -176,22 +181,22 @@ namespace SelectSimilar.ViewModels
 
         }
 
-        protected virtual CheckBoxItem GetOrCreateCheckBoxItem(Parameter parameter)
+        protected virtual CheckBoxItem GetOrCreateCheckBoxItem(string categoryName, long id, string name)
         {
-            if (StoredSettings.TryGetValue(parameter.Element.Category.Name, out var categoryDict) &&
-                categoryDict.TryGetValue(Math.Abs(parameter.Id.Value), out var checkBoxItem))
+            if (StoredSettings.TryGetValue(categoryName, out var categoryDict) &&
+                categoryDict.TryGetValue(Math.Abs(id), out var checkBoxItem))
             {
                 return checkBoxItem;
             }
 
-            var newItem = new CheckBoxItem(Math.Abs(Math.Abs(parameter.Id.Value)), parameter.Definition.Name);
+            var newItem = new CheckBoxItem(Math.Abs(Math.Abs(id)), name);
 
-            if (!StoredSettings.ContainsKey(parameter.Element.Category.Name))
+            if (!StoredSettings.ContainsKey(categoryName))
             {
-                StoredSettings[parameter.Element.Category.Name] = [];
+                StoredSettings[categoryName] = [];
             }
 
-            StoredSettings[parameter.Element.Category.Name].Add(Math.Abs(parameter.Id.Value), newItem);
+            StoredSettings[categoryName].Add(Math.Abs(id), newItem);
 
             return newItem;
         }
@@ -220,18 +225,8 @@ namespace SelectSimilar.ViewModels
 
         public virtual void AddNonParametricCheckBoxes()
         {
-            CheckBoxItem checkBoxIsVisibleInView = new(0, DialogElements.SelectSimilar_VisibleInView);
-
-            if (!StoredSettings.ContainsKey(Model.CurrentCategory.Name))
-            {
-                StoredSettings[Model.CurrentCategory.Name] = [];
-            }
-
-            StoredSettings[Model.CurrentCategory.Name][checkBoxIsVisibleInView.Id] = checkBoxIsVisibleInView;
+            CheckBoxItem checkBoxIsVisibleInView = GetOrCreateCheckBoxItem("0", 0, DialogElements.SelectSimilar_VisibleInView);
             GeneralParameterCheckBoxes.Add(checkBoxIsVisibleInView);
-
-            Debug.WriteLine("Added VisibleInView");
-
         }
 
 
@@ -242,10 +237,15 @@ namespace SelectSimilar.ViewModels
             Model.Filter(CheckedParameters, CategoryIsChecked, VisibleInViewIsChecked);
         }
 
-        public virtual void SaveAndApply()
+        public virtual void Save()
         {
             string jsonString = JsonConvert.SerializeObject(StoredSettings, Formatting.Indented);
             File.WriteAllText(SettingsFilePath, jsonString);
+        }
+
+        public virtual void SaveAndApply()
+        {
+            Save();
             Ok();
         }
 

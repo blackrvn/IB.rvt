@@ -32,9 +32,9 @@
             <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
 
-        <userControls:ContentBox ContentCollection="{Binding FilteredBuiltInParameters}" Header="{Binding BuiltInParametersHeader}" Grid.Row="1"/>
-        <userControls:ContentBox ContentCollection="{Binding FilteredCustomParameters}" Header="{Binding CustomParametersHeader}" Grid.Row="1" Grid.Column="1"/>
-        <userControls:ContentBox ContentCollection="{Binding FilteredGeneralParameters}" Header="{Binding GeneralParametersHeader}" Grid.Row="1" Grid.Column="2"/>
+        <userControls:ContentBox ContentCollection="{Binding FilteredBuiltInParameters}" Header="{Binding BuiltInParametersHeader}" Grid.Row="1" Margin="0,0,3,0"/>
+        <userControls:ContentBox ContentCollection="{Binding FilteredCustomParameters}" Header="{Binding CustomParametersHeader}" Grid.Row="1" Grid.Column="1" Margin="3,0,3,0"/>
+        <userControls:ContentBox ContentCollection="{Binding FilteredGeneralParameters}" Header="{Binding GeneralParametersHeader}" Grid.Row="1" Grid.Column="2" Margin="3,0,0,0"/>
 
         <userControls:SearchBox 
             VerticalAlignment="Center" 

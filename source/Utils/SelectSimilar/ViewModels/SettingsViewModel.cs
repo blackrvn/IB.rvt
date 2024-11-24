@@ -11,7 +11,7 @@ namespace SelectSimilar.ViewModels
     {
         // Collections
         public ObservableCollection<Category> CategoryList { get; private set; } = new ObservableCollection<Category>();
-        public ObservableCollection<CheckBoxItem> SettingsCheckBoxes { get; set; } = new ObservableCollection<CheckBoxItem>();
+        public CheckBoxItem SuppressCheckBox { get; set; }
 
         // Commands
         public IRelayCommand CategoryChangedCommand { get; private set; }
@@ -75,25 +75,7 @@ namespace SelectSimilar.ViewModels
 
         public void AddSuppressCheckBox()
         {
-            CheckBoxItem suppressCheckBox = new(1, DialogElements.SelectSimilar_Suppress);
-            SettingsCheckBoxes.Add(suppressCheckBox);
-
-            if (!StoredSettings.ContainsKey("0"))
-            {
-                StoredSettings["0"] = [];
-            }
-
-            StoredSettings["0"][suppressCheckBox.Id] = suppressCheckBox;
-
-            suppressCheckBox.PropertyChanged += (sender, e) =>
-            {
-                if (e.PropertyName == nameof(CheckBoxItem.IsChecked))
-                {
-                    SuppressMainDialog = suppressCheckBox.IsChecked;
-                }
-            };
-
-            Debug.WriteLine("Added");
+            SuppressCheckBox = GetOrCreateCheckBoxItem("0", 1, DialogElements.SelectSimilar_Suppress);
         }
 
         public void InitializeCategoryList()
@@ -132,11 +114,6 @@ namespace SelectSimilar.ViewModels
             AddSuppressCheckBox();
         }
 
-        public override void InitializeCheckBoxes()
-        {
-            base.InitializeCheckBoxes();
-        }
-
         public void Clear()
         {
             base.GeneralParameterCheckBoxes.Clear();
@@ -151,6 +128,12 @@ namespace SelectSimilar.ViewModels
                 return string.IsNullOrEmpty(category.Name) || category.Name.IndexOf(SearchTextCategories, StringComparison.OrdinalIgnoreCase)>=0 || string.Equals(SearchTextCategories, PlaceholderCategories);
             }
             return false;
+        }
+
+        public override void Ok()
+        {
+            base.Save();
+            base.Cancel();
         }
     }
 

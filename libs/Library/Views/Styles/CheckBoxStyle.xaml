@@ -6,4 +6,6 @@
         <Setter Property="Content" Value="{Binding Name}" />
     </Style>
 
+    <Style TargetType="CheckBox" x:Key="EmptyStyle"/>
+
 </ResourceDictionary>

@@ -17,8 +17,20 @@ namespace Core.Commands
         {
             Model model = new(UiDocument);
             SelectSimilarViewModel selectSimilarViewModel = new(model);
-            SelectSimilarView view = new(selectSimilarViewModel);
-            view.ShowDialog();
+            if (selectSimilarViewModel.SuppressMainDialog)
+            {
+                model.Filter
+                    (
+                        selectSimilarViewModel.CheckedParameters,
+                        selectSimilarViewModel.CategoryIsChecked,
+                        selectSimilarViewModel.VisibleInViewIsChecked
+                    );
+            }
+            else
+            {
+                SelectSimilarView view = new(selectSimilarViewModel);
+                view.ShowDialog();
+            }
         }
     }
 }

@@ -36,23 +36,24 @@
         </Grid.ColumnDefinitions>
 
 
-        <userControls:ContentBox ContentCollection="{Binding FilteredCategories}" SelectedItem="{Binding CurrentCategory, Mode=TwoWay}" Header="{Binding CategoriesHeader}" Grid.Row="1"/>
-        <userControls:ContentBox ContentCollection="{Binding FilteredBuiltInParameters}" Header="{Binding BuiltInParametersHeader}" Grid.Row="1" Grid.Column="1"/>
-        <userControls:ContentBox ContentCollection="{Binding FilteredCustomParameters}" Header="{Binding CustomParametersHeader}" Grid.Row="1" Grid.Column="2"/>
-        <userControls:ContentBox ContentCollection="{Binding FilteredGeneralParameters}" Header="{Binding GeneralParametersHeader}" Grid.Row="1" Grid.Column="3"/>
-        <userControls:ContentBox ContentCollection="{Binding SettingsCheckBoxes}" Header="{Binding CommandName}" Grid.Row="2" Grid.ColumnSpan="4"/>
+        <userControls:ContentBox ContentCollection="{Binding FilteredCategories}" SelectedItem="{Binding CurrentCategory, Mode=TwoWay}" Header="{Binding CategoriesHeader}" Grid.Row="1" Margin="0,0,3,0"/>
+        <userControls:ContentBox ContentCollection="{Binding FilteredBuiltInParameters}" Header="{Binding BuiltInParametersHeader}" Grid.Row="1" Grid.Column="1" Margin="3,0,3,0"/>
+        <userControls:ContentBox ContentCollection="{Binding FilteredCustomParameters}" Header="{Binding CustomParametersHeader}" Grid.Row="1" Grid.Column="2" Margin="3,0,3,0"/>
+        <userControls:ContentBox ContentCollection="{Binding FilteredGeneralParameters}" Header="{Binding GeneralParametersHeader}" Grid.Row="1" Grid.Column="3" Margin="3,0,0,0"/>
 
         <userControls:SearchBox 
             VerticalAlignment="Top" 
             behavior:TextBoxPlaceholderBehavior.PlaceholderText="{Binding PlaceholderCategories}" 
             ClearCommand="{Binding ClearCommand}" 
-            SearchText="{Binding SearchTextCategories, Mode=TwoWay}"/>
+            SearchText="{Binding SearchTextCategories, Mode=TwoWay}"
+            Margin="0,0,3,0"/>
         <userControls:SearchBox 
             VerticalAlignment="Top"
             Grid.Column="1" Grid.ColumnSpan="3" 
             behavior:TextBoxPlaceholderBehavior.PlaceholderText="{Binding PlaceholderParameters}" 
             ClearCommand="{Binding ClearCommand}" 
-            SearchText="{Binding SearchTextParameters, Mode=TwoWay}"/>
+            SearchText="{Binding SearchTextParameters, Mode=TwoWay}"
+            Margin="3,0,0,0"/>
 
         <Button 
             Content="{Binding ButtonOKName}" 
@@ -68,6 +69,14 @@
             Grid.Row="3" 
             VerticalAlignment="Bottom" 
             Grid.ColumnSpan="4"/>
+
+        <CheckBox
+            Content="{Binding SuppressCheckBox.Name}"
+            IsChecked="{Binding SuppressCheckBox.IsChecked}"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            Grid.Row="2" Margin="-1,5,0,0"
+            Style="{StaticResource EmptyStyle}"/>
 
 
     </Grid>
