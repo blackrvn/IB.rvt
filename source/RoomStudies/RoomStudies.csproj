@@ -33,11 +33,6 @@
         <RevitVersion>2025</RevitVersion>
         <TargetFramework>net8.0-windows</TargetFramework>
     </PropertyGroup>
-    <ItemGroup>
-      <Page Remove="Views\Styles\ButtonStyle.xaml" />
-      <Page Remove="Views\Styles\MergedStyles.xaml" />
-      <Page Remove="Views\Styles\UserControlStyle.xaml" />
-    </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Nice3point.Revit.Build.Tasks" Version="2.*" />
@@ -48,16 +43,8 @@
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.*" />
     </ItemGroup>
 
-	<ItemGroup>
-		<Resource Include="Views\Styles\MergedStyles.xaml">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Resource>
-		<Resource Include="Views\Styles\ButtonStyle.xaml">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Resource>
-		<Resource Include="Views\Styles\UserControlStyle.xaml">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Resource>
-	</ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\libs\Library\Library.csproj" />
+    </ItemGroup>
 
 </Project>

@@ -22,6 +22,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Remove="Resources\Icons\RoomStudies_PushButtonImageLarge.png" />
+      <None Remove="Resources\Icons\RoomStudies_PushButtonImageSmall.png" />
       <None Remove="Resources\Icons\SelectSimilar_PushButtonImageLarge.png" />
       <None Remove="Resources\Icons\SelectSimilar_PushButtonImageSmall.png" />
       <None Remove="Resources\Icons\SelectSimilar_SettingsImageLarge.png" />
@@ -33,6 +35,13 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Resource Include="Resources\Icons\RoomStudies_PushButtonImageLarge.png" />
+      <Resource Include="Resources\Icons\RoomStudies_PushButtonImageSmall.png" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageReference Include="Nice3point.Revit.Build.Tasks" Version="2.*" />
         <PackageReference Include="Nice3point.Revit.Toolkit" Version="$(RevitVersion).*" />
@@ -46,6 +55,7 @@
         <ReferenceOutputAssembly>True</ReferenceOutputAssembly>
       </ProjectReference>
       <ProjectReference Include="..\Localization\Localization.csproj" />
+      <ProjectReference Include="..\RoomStudies\RoomStudies.csproj" />
       <ProjectReference Include="..\Utils\SelectSimilar\SelectSimilar.csproj" />
     </ItemGroup>
 

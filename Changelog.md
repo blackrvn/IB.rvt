@@ -8,3 +8,5 @@ Eine UpdateNotification und ein Bibliotheksprojekt für wiederbenutzbare Elemente
 # 1.1.2
 Überschriften sowie die Funktion zur Unterdrückung des Hauptdialoges wurden hinzugefügt.
 
+# 2.0.0-beta
+Raumstudienmodul hinzugefügt.
