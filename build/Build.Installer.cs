@@ -15,6 +15,7 @@ sealed partial class Build
                 Log.Information("Project: {Name}", project.Name);
 
                 var exePattern = $"*{installer.Name}.exe";
+                Log.Information("Searching in directory: {Dir}", installer.Directory);
                 var exeFile = Directory.EnumerateFiles(installer.Directory, exePattern, SearchOption.AllDirectories)
                     .FirstOrDefault()
                     .NotNull($"No installer file was found for the project: {installer.Name}");
