@@ -44,7 +44,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\libs\Library\Library.csproj" />
+      <ProjectReference Include="..\..\libs\Library\Library.csproj">
+        <ReferenceOutputAssembly>True</ReferenceOutputAssembly>
+      </ProjectReference>
     </ItemGroup>
 
 </Project>
