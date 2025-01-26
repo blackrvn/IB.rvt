@@ -225,10 +225,12 @@ namespace RoomStudies.Models
             t.BasisZ = zDir;
             t.Origin = p0;
 
+            /*
             Plane plane = Plane.CreateByNormalAndOrigin(XYZ.BasisZ, p0);
             SketchPlane sketchPlane = SketchPlane.Create(Doc, plane);
 
             Doc.Create.NewModelCurve(segment.GetCurve(), sketchPlane);
+            */
 
             double roomHeight = topElevation - baseElevation;
             double segmentLength = segment.GetCurve().ApproximateLength;

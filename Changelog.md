@@ -10,3 +10,9 @@ Eine UpdateNotification und ein Bibliotheksprojekt für wiederbenutzbare Elemente
 
 # 2.0.0-beta
 Raumstudienmodul hinzugefügt.
+
+# 2.0.1-beta
+Error handling verbessert und Fehler beim Erstellen von Schnitten behoben.
+
+# 2.0.2-beta
+Debug Curves entfernt.
