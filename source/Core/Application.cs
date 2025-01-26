@@ -70,7 +70,6 @@ namespace Core
                 .SetLargeImage("/Core;component/Resources/Icons/RoomStudies_PushButtonImageLarge.png");
 
 
-
         }
 
 

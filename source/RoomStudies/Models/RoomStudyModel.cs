@@ -4,6 +4,9 @@ using Library.Models;
 using System.Windows;
 using Library.Utils;
 using System.Diagnostics;
+using System.IO;
+using Autodesk.Revit.Exceptions;
+using Autodesk.Revit.DB;
 
 namespace RoomStudies.Models
 {
@@ -17,10 +20,13 @@ namespace RoomStudies.Models
         private bool _isRectangular = true;
         private List<BoundarySegment> _relevantSegments = [];
 
+        public delegate void Notify(string message);
+        public event Notify ErrorEvent;
+
         public RoomStudyModel(Room room)
         {
-            _room = room ?? throw new ArgumentNullException(nameof(room));
-            _offset = UnitUtils.ConvertToInternalUnits(0.5, UnitTypeId.Meters);
+            _room = room ?? throw new System.ArgumentNullException(nameof(room));
+            _offset = 0.5;
         }
 
         public string GetRoomNumber() => _room.Number;
@@ -30,8 +36,11 @@ namespace RoomStudies.Models
 
         public void CreateRoomStudy(ElementId titleBlockId)
         {
+            ModelTransaction = new(Doc);
+            ModelTransaction.Start($"Processing room: {_room.Number} - {_room.Name}");
+
             _viewSheet = ViewSheet.Create(Doc, titleBlockId);
-            if (_viewSheet == null) throw new InvalidOperationException("Sheet creation failed.");
+            if (_viewSheet == null) throw new System.InvalidOperationException("Sheet creation failed.");
 
             ExtractGeometricalData();
 
@@ -44,16 +53,13 @@ namespace RoomStudies.Models
                     RotateElement(elevationMarker, _rotationCenter.Coord, _rotationAngle);
                 }
             }
-
             else
             {
                 List<ViewSection> viewSections =  CreateSectionView();
-                /*
                 for (int i = 0; i < viewSections.Count(); i++)
                 {
                     CreateViewPort(viewSections[i], new XYZ(i, i, 0));
                 }
-                */
 
             }
 
@@ -64,6 +70,7 @@ namespace RoomStudies.Models
             CreateViewPort(ceilingPlan, XYZ.Zero);
 
             SetSheetAttributes();
+            ModelTransaction.Commit();
         }
 
         private void SetSheetAttributes()
@@ -78,7 +85,16 @@ namespace RoomStudies.Models
             catch (Exception e)
             {
                 Console.WriteLine($"Error setting sheet attributes: {e.Message}");
+                ModelTransaction.RollBack();
+                throw new Exception("Error setting sheet attributes.");
             }
+        }
+
+        private void SetSectionAttributes(ViewSection section, int index)
+        {
+            char letter = (char)('A' + index);
+            section.FindParameter(BuiltInParameter.VIEW_NAME)?.Set($"{_room.Number} - {letter.ToString()}");
+            section.Scale = 20;
         }
 
         private void ExtractGeometricalData()
@@ -119,9 +135,16 @@ namespace RoomStudies.Models
                         _relevantSegments.Add(currentBoundarySegment);
                     }
 
+
+
                     if (i+1 <= segmentList.Count() - 1)
                     {
                         BoundarySegment nextBoundarySegment = segmentList[i+1];
+                        if (!end.IsAlmostEqualTo(nextBoundarySegment.GetCurve().GetEndPoint(0)))
+                        {
+                            ModelTransaction.RollBack();
+                            throw new Exception("Boundary not valid");
+                        }
                         double angleBetween = UnitUtils.Convert((end - start).AngleTo(nextBoundarySegment.GetCurve().GetEndPoint(1) - nextBoundarySegment.GetCurve().GetEndPoint(0)), UnitTypeId.Radians, UnitTypeId.Degrees);
                         if ((Math.Round(angleBetween, 2) != 90.00) && _isRectangular) // Check if the angle between two segments is not 90 degrees and hasnt be set to false before
                         {
@@ -174,10 +197,12 @@ namespace RoomStudies.Models
 
         private BoundingBoxXYZ CreateSectionBoundingBox(BoundarySegment segment)
         {
-
             Level level = _room.Level;
-            double baseElevation = level.Elevation - _offset;
-            double topElevation = _room.get_Parameter(BuiltInParameter.ROOM_UPPER_LEVEL).AsDouble() + _room.get_Parameter(BuiltInParameter.ROOM_UPPER_OFFSET).AsDouble() + _offset;
+            double baseElevation = UnitUtils.ConvertFromInternalUnits(level.Elevation, UnitTypeId.Meters) - _offset;
+            Level upperLevel = Doc.GetElement(_room.get_Parameter(BuiltInParameter.ROOM_UPPER_LEVEL).AsElementId()) as Level;
+            double upperLevelElevation = UnitUtils.ConvertFromInternalUnits(upperLevel.Elevation, UnitTypeId.Meters);
+            double upperOffset = _room.get_Parameter(BuiltInParameter.ROOM_UPPER_OFFSET).AsDouble();
+            double topElevation = upperLevelElevation + upperOffset + _offset;
 
             XYZ p0 = segment.GetCurve().GetEndPoint(0);
             XYZ p1 = segment.GetCurve().GetEndPoint(1);
@@ -211,8 +236,8 @@ namespace RoomStudies.Models
             BoundingBoxXYZ boundingBox = new();
             boundingBox.Transform = t;
 
-            boundingBox.Min = new XYZ(0, 0, -0.5);
-            boundingBox.Max = new XYZ(segmentLength, roomHeight, 0.5);
+            boundingBox.Min = new XYZ(0, - _offset, -1);
+            boundingBox.Max = new XYZ(segmentLength, roomHeight, 1);
 
             boundingBox.Enabled = true;
 
@@ -230,12 +255,25 @@ namespace RoomStudies.Models
             }
             else
             {
-                foreach (BoundarySegment segment in _relevantSegments)
+                for (int i = 0; i<_relevantSegments.Count(); i++)
                 {
+                    BoundarySegment segment = _relevantSegments[i];
                     ElementId viewFamilyTypeId = GetViewTypeId(Doc, "Section", "Building Section");
-                    sectionViews.Add(ViewSection.CreateSection(Doc, viewFamilyTypeId, CreateSectionBoundingBox(segment)));
-                }
+                    BoundingBoxXYZ sectionBoundingBox = CreateSectionBoundingBox(segment);
+                    Debug.WriteLine($"Min: {sectionBoundingBox.Min}\nMax: {sectionBoundingBox.Max}");
+                    try
+                    {
+                        ViewSection viewSection = ViewSection.CreateSection(Doc, viewFamilyTypeId, sectionBoundingBox);
+                        SetSectionAttributes(viewSection, i);
+                        sectionViews.Add(viewSection);
+                    }
+                    catch (Autodesk.Revit.Exceptions.ArgumentException AE)
+                    {
+                        ModelTransaction.RollBack();
+                        throw new System.ArgumentException(AE.Message);
+                    }
 
+                }
                 return sectionViews;
             }
         }
@@ -248,7 +286,7 @@ namespace RoomStudies.Models
                 if (view != null)
                 {
                     Viewport.Create(Doc, _viewSheet.Id, view.Id, new XYZ(i, i, 0));
-                    //TransformCropRegion(view);
+                    // TransformCropRegion(view);
                 }
             }
         }
@@ -262,7 +300,7 @@ namespace RoomStudies.Models
                 {
                     ApplyCropRegion(view, boundingBox);
                 }
-                TransformCropRegion(view);
+                // TransformCropRegion(view);
                 return viewport;
             }
             return null;

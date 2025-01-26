@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace Library.Interfaces
 {
-    public interface IMainModel<T, TModel>
+    public interface IMainModel<T1, TModel>
     {
-        IList<T> SelectedItems { get; set; }
+        IList<T1> SelectedItems { get; set; }
         void CollectItems();
         void ProcessItems();
         IList<Reference> GetUserSelection(ISelectionFilter selectionFilter);

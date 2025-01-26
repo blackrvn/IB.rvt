@@ -5,28 +5,24 @@ using Library.Interfaces;
 
 namespace Library.Models
 {
-    public abstract class MainModelBase<T, TModel> : ModelBase, IMainModel<T, TModel>
+    public abstract class MainModelBase<T1, TModel> : ModelBase, IMainModel<T1, TModel>
     {
-        protected readonly Func<T, TModel> _modelFactory;
-        public IList<T> SelectedItems { get; set; }
+        protected readonly Func<T1, TModel> _modelFactory;
+        public IList<T1> SelectedItems { get; set; }
         
-        public MainModelBase(Func<T, TModel> modelFactory)
+        public MainModelBase(Func<T1, TModel> modelFactory)
         {
             _modelFactory = modelFactory ?? throw new ArgumentNullException(nameof(modelFactory));
-            SelectedItems = new List<T>();
+            SelectedItems = new List<T1>();
         }
 
         public virtual void ProcessItems()
         {
-            foreach (var item in SelectedItems)
-            {
-                var model = _modelFactory(item);
-            }
         }
 
         public virtual void CollectItems()
         {
-            // Expand in child class to add to SelectedItems<T>
+            // Expand in child class to add to SelectedItems<T1>
         }
 
         public IList<Reference> GetUserSelection(ISelectionFilter selectionFilter)

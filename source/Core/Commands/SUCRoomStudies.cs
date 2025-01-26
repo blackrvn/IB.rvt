@@ -4,6 +4,7 @@ using RoomStudies.Models;
 using RoomStudies.ViewModels;
 using RoomStudies.Views;
 using Core;
+using Autodesk.Revit.Exceptions;
 
 namespace Core.Commands
 {
@@ -16,7 +17,25 @@ namespace Core.Commands
     {
         public override void Execute()
         {
-            MainModel mainModel = Host.GetService<MainModel>();
+            try
+            {
+                MainModel mainModel = Host.GetService<MainModel>();
+            }
+            catch (System.OperationCanceledException e)
+            {
+                Result = Autodesk.Revit.UI.Result.Cancelled;
+                ErrorMessage = e.Message;
+            }
+            catch (System.ArgumentException e)
+            {
+                Result = Autodesk.Revit.UI.Result.Failed;
+                ErrorMessage = e.Message;
+            }
+            catch (Exception e)
+            {
+                Result = Autodesk.Revit.UI.Result.Failed;
+                ErrorMessage = e.Message;
+            }
         }
     }
 }

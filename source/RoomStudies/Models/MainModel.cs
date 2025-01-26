@@ -16,17 +16,15 @@ namespace RoomStudies.Models
 
         public override void ProcessItems() 
         {
-            ElementId titleBlockId = GetTitleBlockId("E1 30x42 Horizontal");
-            var transaction = new Transaction(Doc);
-            transaction.Start("Processing selected rooms");
+            ElementId titleBlockId = GetTitleBlockId();
             foreach (var item in SelectedItems)
             {
                 var model = _modelFactory(item);
                 model.CreateRoomStudy(titleBlockId);
             }
-            transaction.Commit();
+
         }
-        public override void CollectItems() // Collects rooms from user selection
+        public override void CollectItems()
         {
             try
             {
@@ -41,24 +39,19 @@ namespace RoomStudies.Models
             catch (OperationCanceledException OCE)
             {
                 Console.WriteLine(OCE);
+                ModelTransaction.RollBack();
+                throw new OperationCanceledException("Selection was cancelled");
             }
 
         }
 
-        private ElementId GetTitleBlockId(string name)
+        private ElementId GetTitleBlockId()
         {
             FilteredElementCollector collector = new FilteredElementCollector(Doc);
             collector.OfClass(typeof(FamilySymbol));
             collector.OfCategory(BuiltInCategory.OST_TitleBlocks);
             collector.WhereElementIsElementType();
-            foreach (Element familySymbol in collector)
-            {
-                if (familySymbol.Name == name)
-                {
-                    return familySymbol.Id;
-                }
-            }
-            return null;
+            return collector.FirstOrDefault().Id;
         }
     }
 }

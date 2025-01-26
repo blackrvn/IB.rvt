@@ -7,11 +7,13 @@ namespace Library.Models
     public class ModelBase
     {
         internal Document _doc;
+        public Transaction ModelTransaction { get; set; }
+
         public Document Doc
         {
             get
             {
-                return _doc;
+                return _doc; 
             }
             private set
             {
