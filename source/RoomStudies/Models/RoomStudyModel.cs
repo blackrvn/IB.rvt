@@ -11,6 +11,7 @@ using System.Text;
 
 namespace RoomStudies.Models
 {
+
     public class RoomStudyModel : ModelBase
     {
         private readonly Room _room;
@@ -19,7 +20,7 @@ namespace RoomStudies.Models
         private ViewSheet _viewSheet;
         private readonly double _offset;
         private bool _isRectangular = true;
-        private List<BoundarySegment> _relevantSegments = [];
+        private List<Curve> _relevantSegments = [];
 
         public delegate void Notify(string message);
         public event Notify ErrorEvent;
@@ -124,6 +125,106 @@ namespace RoomStudies.Models
             _rotationAngle = CalculateAngle(referenceVector);
         }
 
+        private bool IsLine(Curve segment)
+        {
+            return segment is Line;
+        }
+
+        private bool IsCollinear(Curve segA, Curve segB, double tolerance = 1e-9)
+        {
+            var curveA = segA as Line;
+            var curveB = segB as Line;
+            if (curveA == null || curveB == null) return false;
+
+            // Endpunkt A = Startpunkt B?
+            // Wir prüfen: (A.End ~ B.Start).
+            XYZ endA = curveA.GetEndPoint(1);
+            XYZ startB = curveB.GetEndPoint(0);
+
+            if (!endA.IsAlmostEqualTo(startB, tolerance))
+            {
+                return false;
+            }
+
+            // Richtung vergleichen
+            // (A) vA = (End - Start).Normalize()
+            // (B) vB = (End - Start).Normalize()
+            XYZ vA = (curveA.GetEndPoint(1) - curveA.GetEndPoint(0)).Normalize();
+            XYZ vB = (curveB.GetEndPoint(1) - curveB.GetEndPoint(0)).Normalize();
+
+            // Kollinear wenn DotProduct = +1 oder -1 (innerhalb Toleranz)
+            double dot = vA.DotProduct(vB);
+            return (Math.Abs(Math.Abs(dot) - 1.0) < tolerance);
+        }
+
+        private Curve MergeSegments(Curve segA, Curve segB)
+        {
+            var curveA = segA as Line;
+            var curveB = segB as Line;
+
+            XYZ start = curveA.GetEndPoint(0);
+            XYZ end = curveB.GetEndPoint(1);
+
+            Line mergedLine = Line.CreateBound(start, end);
+
+            return (Curve)mergedLine;
+        }
+
+
+        private List<Curve> MergeCollinearSegments(IList<BoundarySegment> segmentList, double tolerance = 1e-9)
+        {
+            var result = new List<Curve>();
+            if (segmentList.Count == 0) return result;
+
+            // Wir iterieren manuell mit while, damit wir ggf. i++ überspringen können,
+            // wenn wir zwei Segmente gemergt haben.
+            int i = 0;
+            while (i < segmentList.Count)
+            {
+                // "aktuelles" Segment
+                var currentSegment = segmentList[i].GetCurve();
+
+                // Stelle sicher, dass wir nur Linien mergen:
+                if (!IsLine(currentSegment))
+                {
+                    // Kein Mergen möglich -> direkt übernehmen
+                    result.Add(currentSegment);
+                    i++;
+                    continue;
+                }
+
+                // Jetzt wird weitergeschaut, ob das nächste Segment collinear ist
+                int j = i + 1;
+                while (j < segmentList.Count)
+                {
+                    var nextSegment = segmentList[j].GetCurve();
+                    // nur mergen, wenn es eine Line ist und collinear
+                    if (IsLine(nextSegment) && IsCollinear(currentSegment, nextSegment, tolerance))
+                    {
+                        // Mergen
+                        currentSegment = MergeSegments(currentSegment, nextSegment);
+                        // j weiter -> wir "überspringen" das merged Segment
+                        j++;
+                    }
+                    else
+                    {
+                        // nix zu mergen -> raus
+                        break;
+                    }
+                }
+
+                // das gemergte (oder unveränderte) Segment in die Ergebnisliste
+                result.Add(currentSegment);
+
+                // i springt auf j, weil wir bis dorthin alles gemergt haben
+                i = j;
+            }
+
+            return result;
+        }
+
+
+
         private (Autodesk.Revit.DB.Point, XYZ) CalculateCentroid(IList<IList<BoundarySegment>> segments)
         {
             double x = 0, y = 0, z = 0, maxLength = 0;
@@ -133,28 +234,24 @@ namespace RoomStudies.Models
 
             foreach (var segmentList in segments)
             {
-                for (int i = 0; i < segmentList.Count(); i++)
+                var mergedSegments = MergeCollinearSegments(segmentList);
+
+                for (int i = 0; i < mergedSegments.Count(); i++)
                 {
-                    BoundarySegment currentBoundarySegment = segmentList[i];
+                    Curve currentBoundaryCurve = mergedSegments[i];
                     numSegments++;
-                    XYZ start = currentBoundarySegment.GetCurve().GetEndPoint(0);
-                    XYZ end = currentBoundarySegment.GetCurve().GetEndPoint(1);
+                    XYZ start = currentBoundaryCurve.GetEndPoint(0);
+                    XYZ end = currentBoundaryCurve.GetEndPoint(1);
 
                     x += start.X;
                     y += start.Y;
                     z += start.Z;
 
-                    if (currentBoundarySegment.GetCurve().ApproximateLength > maxLength)
+                    if (currentBoundaryCurve.ApproximateLength > maxLength)
                     {
-                        maxLength = currentBoundarySegment.GetCurve().ApproximateLength;
+                        maxLength = currentBoundaryCurve.ApproximateLength;
                         referenceVector = new XYZ(end.X - start.X, end.Y - start.Y, 0);
                     }
-
-                    if (currentBoundarySegment.GetCurve().ApproximateLength >= trheshold)
-                    {
-                        _relevantSegments.Add(currentBoundarySegment);
-                    }
-
 
 
                     if (i+1 <= segmentList.Count() - 1)
@@ -172,6 +269,12 @@ namespace RoomStudies.Models
                         {
                             _isRectangular = false;
                         }
+
+                    }
+
+                    if (currentBoundaryCurve.ApproximateLength >= trheshold)
+                    {
+                        _relevantSegments.Add(currentBoundaryCurve);
                     }
                 }
             }
@@ -217,7 +320,7 @@ namespace RoomStudies.Models
             return ElevationMarker.CreateElevationMarker(Doc, viewFamilyTypeId, point, 20);
         }
 
-        private BoundingBoxXYZ CreateSectionBoundingBox(BoundarySegment segment)
+        private BoundingBoxXYZ CreateSectionBoundingBox(Curve segment)
         {
             Level level = _room.Level;
             double baseElevation = UnitUtils.ConvertFromInternalUnits(level.Elevation, UnitTypeId.Meters) - _offset;
@@ -226,8 +329,8 @@ namespace RoomStudies.Models
             double upperOffset = _room.get_Parameter(BuiltInParameter.ROOM_UPPER_OFFSET).AsDouble();
             double topElevation = upperLevelElevation + upperOffset + _offset;
 
-            XYZ p0 = segment.GetCurve().GetEndPoint(0);
-            XYZ p1 = segment.GetCurve().GetEndPoint(1);
+            XYZ p0 = segment.GetEndPoint(0);
+            XYZ p1 = segment.GetEndPoint(1);
 
             XYZ globalUp = XYZ.BasisZ;
 
@@ -251,11 +354,11 @@ namespace RoomStudies.Models
             Plane plane = Plane.CreateByNormalAndOrigin(XYZ.BasisZ, p0);
             SketchPlane sketchPlane = SketchPlane.Create(Doc, plane);
 
-            Doc.Create.NewModelCurve(segment.GetCurve(), sketchPlane);
+            Doc.Create.NewModelCurve(curve.GetCurve(), sketchPlane);
             */
 
             double roomHeight = topElevation - baseElevation;
-            double segmentLength = segment.GetCurve().ApproximateLength;
+            double segmentLength = segment.ApproximateLength;
 
             BoundingBoxXYZ boundingBox = new();
             boundingBox.Transform = t;
@@ -281,9 +384,9 @@ namespace RoomStudies.Models
             {
                 for (int i = 0; i<_relevantSegments.Count(); i++)
                 {
-                    BoundarySegment segment = _relevantSegments[i];
+                    Curve curve = _relevantSegments[i];
                     ElementId viewFamilyTypeId = GetViewTypeId(Doc, "Section", "Building Section");
-                    BoundingBoxXYZ sectionBoundingBox = CreateSectionBoundingBox(segment);
+                    BoundingBoxXYZ sectionBoundingBox = CreateSectionBoundingBox(curve);
                     Debug.WriteLine($"Min: {sectionBoundingBox.Min}\nMax: {sectionBoundingBox.Max}");
                     try
                     {

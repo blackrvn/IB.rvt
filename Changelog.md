@@ -19,3 +19,6 @@ Debug Curves entfernt.
 
 # 2.0.3-beta
 Fehler beim Erstellen von Schnitten behoben.
+
+# 2.0.4-beta
+Zusammenfügen von Schnitten bei gleicher Richtung der Segmente.
