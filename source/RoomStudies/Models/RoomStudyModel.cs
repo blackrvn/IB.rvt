@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using Autodesk.Revit.Exceptions;
 using Autodesk.Revit.DB;
+using System.Text;
 
 namespace RoomStudies.Models
 {
@@ -92,8 +93,27 @@ namespace RoomStudies.Models
 
         private void SetSectionAttributes(ViewSection section, int index)
         {
-            char letter = (char)('A' + index);
-            section.FindParameter(BuiltInParameter.VIEW_NAME)?.Set($"{_room.Number} - {letter.ToString()}");
+            if (index < 0)
+                throw new System.ArgumentOutOfRangeException(nameof(index), "Index muss >= 0 sein.");
+
+            var suffix = new StringBuilder();
+
+            while (true)
+            {
+                int remainder = index % 26;
+
+                char letter = (char)('A' + remainder);
+
+                suffix.Insert(0, letter);
+
+                index = (index / 26) - 1;
+
+                if (index < 0)
+                    break;
+            }
+
+            section.FindParameter(BuiltInParameter.VIEW_NAME)?.Set($"{_room.Number} - {suffix}");
+
             section.Scale = 20;
         }
 
@@ -140,11 +160,13 @@ namespace RoomStudies.Models
                     if (i+1 <= segmentList.Count() - 1)
                     {
                         BoundarySegment nextBoundarySegment = segmentList[i+1];
+                        /*
                         if (!end.IsAlmostEqualTo(nextBoundarySegment.GetCurve().GetEndPoint(0)))
                         {
                             ModelTransaction.RollBack();
-                            throw new Exception("Boundary not valid");
+                            throw new Exception($"Boundary not valid:\nEnd: {end}\nStart {nextBoundarySegment.GetCurve().GetEndPoint(0)}");
                         }
+                        */
                         double angleBetween = UnitUtils.Convert((end - start).AngleTo(nextBoundarySegment.GetCurve().GetEndPoint(1) - nextBoundarySegment.GetCurve().GetEndPoint(0)), UnitTypeId.Radians, UnitTypeId.Degrees);
                         if ((Math.Round(angleBetween, 2) != 90.00) && _isRectangular) // Check if the angle between two segments is not 90 degrees and hasnt be set to false before
                         {

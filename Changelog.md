@@ -16,3 +16,6 @@ Error handling verbessert und Fehler beim Erstellen von Schnitten behoben.
 
 # 2.0.2-beta
 Debug Curves entfernt.
+
+# 2.0.3-beta
+Fehler beim Erstellen von Schnitten behoben.
