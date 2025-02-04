@@ -1,5 +1,6 @@
 ﻿using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.UI;
+using Library.Utils;
 
 
 namespace Library.Models
@@ -7,7 +8,6 @@ namespace Library.Models
     public class ModelBase
     {
         internal Document _doc;
-        public Transaction ModelTransaction { get; set; }
 
         public Document Doc
         {

@@ -5,6 +5,7 @@ VisualStudioVersion = 17.11.35327.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5940D181-BD03-4B08-84A8-356B44C94797}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 		Build\Build.Configuration.cs = Build\Build.Configuration.cs
 		Changelog.md = Changelog.md

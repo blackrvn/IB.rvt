@@ -1,12 +1,9 @@
-﻿using Autodesk.Revit.DB.Architecture;
+﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 using Library.Models;
-using System.Windows;
 using Library.Utils;
 using System.Diagnostics;
-using System.IO;
-using Autodesk.Revit.Exceptions;
-using Autodesk.Revit.DB;
 using System.Text;
 
 namespace RoomStudies.Models
@@ -20,64 +17,92 @@ namespace RoomStudies.Models
         private ViewSheet _viewSheet;
         private readonly double _offset;
         private bool _isRectangular = true;
-        private List<Curve> _relevantSegments = [];
-
-        public delegate void Notify(string message);
-        public event Notify ErrorEvent;
+        private List<Curve> _relevantSegments = new();
 
         public RoomStudyModel(Room room)
         {
             _room = room ?? throw new System.ArgumentNullException(nameof(room));
-            _offset = 0.5;
+            _offset = UnitUtils.ConvertToInternalUnits(0.5, UnitTypeId.Meters);
         }
 
-        public string GetRoomNumber() => _room.Number;
-        public string GetRoomName() => _room.Name;
-        public string GetSheetNumber() => _viewSheet?.SheetNumber ?? "N/A";
-        public string GetSheetName() => _viewSheet?.Name ?? "N/A";
+        public string RoomNumber => _room.Number;
+        public string RoomName => _room.Name;
 
-        public void CreateRoomStudy(ElementId titleBlockId)
+        public string SheetNumber => _viewSheet?.SheetNumber ?? "N/A";
+        public string SheetName => _viewSheet?.Name ?? "N/A";
+
+
+        private ElementId GetTitleBlockId()
         {
-            ModelTransaction = new(Doc);
-            ModelTransaction.Start($"Processing room: {_room.Number} - {_room.Name}");
+            FilteredElementCollector collector = new FilteredElementCollector(Doc);
+            collector.OfClass(typeof(FamilySymbol));
+            collector.OfCategory(BuiltInCategory.OST_TitleBlocks);
+            collector.WhereElementIsElementType();
+            return collector.FirstOrDefault().Id;
+        }
 
-            _viewSheet = ViewSheet.Create(Doc, titleBlockId);
+        private void CreateSheet()
+        {
+            _viewSheet = ViewSheet.Create(Doc, GetTitleBlockId());
             if (_viewSheet == null) throw new System.InvalidOperationException("Sheet creation failed.");
+        }
 
-            ExtractGeometricalData();
+        public void CreateRoomStudy()
+        {
+            using var transactionManager = new TransactionHelper(Doc, $"Processing room: {_room.Number} - {_room.Name}");
 
-            if (_isRectangular)
+            try
             {
-                Element elevationMarker = CreateElevationMarker(_rotationCenter.Coord, "Elevation", "Interior Elevation");
-                if (elevationMarker is ElevationMarker marker)
+                transactionManager.Execute(new List<Action>([() => CreateSheet(), () => ExtractGeometricalData(), () => CreatePlanViews(), () => SetSheetAttributes()]));
+
+                if (_isRectangular)
                 {
-                    CreateElevationViews(marker);
-                    RotateElement(elevationMarker, _rotationCenter.Coord, _rotationAngle);
+                    ProcessRectangularRoom(transactionManager);
+                }
+                else
+                {
+                    ProcessNonRectangularRoom(transactionManager);
                 }
             }
-            else
+
+            catch (System.Exception e)
             {
-                List<ViewSection> viewSections =  CreateSectionView();
-                for (int i = 0; i < viewSections.Count(); i++)
+                transactionManager.GetTransactionGroup().RollBack();
+                throw new System.Exception(e.Message);
+            }
+
+        }
+
+        private void ProcessRectangularRoom(TransactionHelper transactionHelper)
+        {
+            Element elevationMarker = null;
+            transactionHelper.Execute(() => elevationMarker = CreateElevationMarker(_rotationCenter.Coord, "Elevation", "Interior Elevation"));
+            if (elevationMarker is ElevationMarker marker)
+            {
+                View view = null;
+                transactionHelper.Execute(() => view = marker.CreateElevation(Doc, Doc.ActiveView.Id, 0));
+                transactionHelper.Execute(new List<Action>([
+                    () => RotateElement(elevationMarker, _rotationCenter.Coord, _rotationAngle), 
+                    () => TransformCropRegion(view, view.CropBox)]));
+                CreateElevationViews(marker, transactionHelper);
+            }
+        }
+
+        private void ProcessNonRectangularRoom(TransactionHelper transactionHelper)
+        {
+            transactionHelper.Execute(() =>
+            {
+                List<ViewSection> viewSections = CreateSectionView();
+                for (int i = 0; i < viewSections.Count; i++)
                 {
                     CreateViewPort(viewSections[i], new XYZ(i, i, 0));
                 }
-
-            }
-
-            ViewPlan floorPlan = CreateViewPlan(ViewFamily.FloorPlan);
-            ViewPlan ceilingPlan = CreateViewPlan(ViewFamily.CeilingPlan);
-
-            CreateViewPort(floorPlan, XYZ.Zero);
-            CreateViewPort(ceilingPlan, XYZ.Zero);
-
-            SetSheetAttributes();
-            ModelTransaction.Commit();
+            });
         }
 
         private void SetSheetAttributes()
         {
-            if (_viewSheet == null) return;
+            if (_viewSheet == null) throw new System.InvalidOperationException("Sheet has not been created.");
 
             try
             {
@@ -87,7 +112,6 @@ namespace RoomStudies.Models
             catch (Exception e)
             {
                 Console.WriteLine($"Error setting sheet attributes: {e.Message}");
-                ModelTransaction.RollBack();
                 throw new Exception("Error setting sheet attributes.");
             }
         }
@@ -136,8 +160,6 @@ namespace RoomStudies.Models
             var curveB = segB as Line;
             if (curveA == null || curveB == null) return false;
 
-            // Endpunkt A = Startpunkt B?
-            // Wir prüfen: (A.End ~ B.Start).
             XYZ endA = curveA.GetEndPoint(1);
             XYZ startB = curveB.GetEndPoint(0);
 
@@ -146,13 +168,10 @@ namespace RoomStudies.Models
                 return false;
             }
 
-            // Richtung vergleichen
-            // (A) vA = (End - Start).Normalize()
-            // (B) vB = (End - Start).Normalize()
+
             XYZ vA = (curveA.GetEndPoint(1) - curveA.GetEndPoint(0)).Normalize();
             XYZ vB = (curveB.GetEndPoint(1) - curveB.GetEndPoint(0)).Normalize();
 
-            // Kollinear wenn DotProduct = +1 oder -1 (innerhalb Toleranz)
             double dot = vA.DotProduct(vB);
             return (Math.Abs(Math.Abs(dot) - 1.0) < tolerance);
         }
@@ -176,47 +195,36 @@ namespace RoomStudies.Models
             var result = new List<Curve>();
             if (segmentList.Count == 0) return result;
 
-            // Wir iterieren manuell mit while, damit wir ggf. i++ überspringen können,
-            // wenn wir zwei Segmente gemergt haben.
+
             int i = 0;
             while (i < segmentList.Count)
             {
-                // "aktuelles" Segment
                 var currentSegment = segmentList[i].GetCurve();
 
-                // Stelle sicher, dass wir nur Linien mergen:
                 if (!IsLine(currentSegment))
                 {
-                    // Kein Mergen möglich -> direkt übernehmen
                     result.Add(currentSegment);
                     i++;
                     continue;
                 }
 
-                // Jetzt wird weitergeschaut, ob das nächste Segment collinear ist
                 int j = i + 1;
                 while (j < segmentList.Count)
                 {
                     var nextSegment = segmentList[j].GetCurve();
-                    // nur mergen, wenn es eine Line ist und collinear
                     if (IsLine(nextSegment) && IsCollinear(currentSegment, nextSegment, tolerance))
                     {
-                        // Mergen
                         currentSegment = MergeSegments(currentSegment, nextSegment);
-                        // j weiter -> wir "überspringen" das merged Segment
                         j++;
                     }
                     else
                     {
-                        // nix zu mergen -> raus
                         break;
                     }
                 }
 
-                // das gemergte (oder unveränderte) Segment in die Ergebnisliste
                 result.Add(currentSegment);
 
-                // i springt auf j, weil wir bis dorthin alles gemergt haben
                 i = j;
             }
 
@@ -230,13 +238,13 @@ namespace RoomStudies.Models
             double x = 0, y = 0, z = 0, maxLength = 0;
             int numSegments = 0;
             XYZ referenceVector = XYZ.Zero;
-            double trheshold = UnitUtils.ConvertToInternalUnits(0.5, UnitTypeId.Meters);
+            double threshold = UnitUtils.ConvertToInternalUnits(0.5, UnitTypeId.Meters);
 
             foreach (var segmentList in segments)
             {
                 var mergedSegments = MergeCollinearSegments(segmentList);
 
-                for (int i = 0; i < mergedSegments.Count(); i++)
+                for (int i = 0; i < mergedSegments.Count; i++)
                 {
                     Curve currentBoundaryCurve = mergedSegments[i];
                     numSegments++;
@@ -251,10 +259,11 @@ namespace RoomStudies.Models
                     {
                         maxLength = currentBoundaryCurve.ApproximateLength;
                         referenceVector = new XYZ(end.X - start.X, end.Y - start.Y, 0);
+                        CreateDebugCurve(Line.CreateBound(end, start));
                     }
 
 
-                    if (i+1 <= segmentList.Count() - 1)
+                    if (i+1 <= segmentList.Count - 1)
                     {
                         BoundarySegment nextBoundarySegment = segmentList[i+1];
                         /*
@@ -272,7 +281,7 @@ namespace RoomStudies.Models
 
                     }
 
-                    if (currentBoundaryCurve.ApproximateLength >= trheshold)
+                    if (currentBoundaryCurve.ApproximateLength >= threshold)
                     {
                         _relevantSegments.Add(currentBoundaryCurve);
                     }
@@ -283,19 +292,30 @@ namespace RoomStudies.Models
             return (Autodesk.Revit.DB.Point.Create(centroid), referenceVector);
         }
 
+        
         private double CalculateAngle(XYZ referenceVector)
         {
             XYZ unitVector = XYZ.BasisX;
-            return referenceVector.X < 0
-                ? unitVector.AngleTo(referenceVector.Negate().Normalize())
-                : unitVector.AngleTo(referenceVector.Normalize());
+            double angle =  referenceVector.X < 0
+                ? referenceVector.Negate().Normalize().AngleTo(unitVector)
+                : referenceVector.Normalize().AngleTo(unitVector);
+            return Math.Sign(referenceVector.X) * angle;
         }
+        
+
+        /*
+        private double CalculateAngle(XYZ referenceVector)
+        {
+            double angle = Math.Atan2(referenceVector.X, referenceVector.Y);
+            return Math.PI / 2 + Math.Sign(referenceVector.X) * angle;
+        }
+        */
 
         public ISet<ElementId> GetViewSet() => _viewSheet?.GetAllPlacedViews() ?? new HashSet<ElementId>();
 
         public IList<ElementId> GetAllElementsOnSheet()
         {
-            if (_viewSheet == null) return [];
+            if (_viewSheet == null) return new List<ElementId>();
 
             var categories = new List<BuiltInCategory>
             {
@@ -323,11 +343,11 @@ namespace RoomStudies.Models
         private BoundingBoxXYZ CreateSectionBoundingBox(Curve segment)
         {
             Level level = _room.Level;
-            double baseElevation = UnitUtils.ConvertFromInternalUnits(level.Elevation, UnitTypeId.Meters) - _offset;
+            double baseElevation = level.Elevation;
             Level upperLevel = Doc.GetElement(_room.get_Parameter(BuiltInParameter.ROOM_UPPER_LEVEL).AsElementId()) as Level;
-            double upperLevelElevation = UnitUtils.ConvertFromInternalUnits(upperLevel.Elevation, UnitTypeId.Meters);
+            double upperLevelElevation = upperLevel.Elevation;
             double upperOffset = _room.get_Parameter(BuiltInParameter.ROOM_UPPER_OFFSET).AsDouble();
-            double topElevation = upperLevelElevation + upperOffset + _offset;
+            double topElevation = upperLevelElevation + upperOffset;
 
             XYZ p0 = segment.GetEndPoint(0);
             XYZ p1 = segment.GetEndPoint(1);
@@ -349,24 +369,20 @@ namespace RoomStudies.Models
             t.BasisY = yDir;
             t.BasisZ = zDir;
             t.Origin = p0;
+            Debug.WriteLine($"\nX: {t.BasisX}, Y: {t.BasisY}, Z: {t.BasisZ}\n");
 
-            /*
-            Plane plane = Plane.CreateByNormalAndOrigin(XYZ.BasisZ, p0);
-            SketchPlane sketchPlane = SketchPlane.Create(Doc, plane);
-
-            Doc.Create.NewModelCurve(curve.GetCurve(), sketchPlane);
-            */
-
-            double roomHeight = topElevation - baseElevation;
+            double roomHeight = topElevation - baseElevation + 2 *_offset;
             double segmentLength = segment.ApproximateLength;
 
-            BoundingBoxXYZ boundingBox = new();
-            boundingBox.Transform = t;
+            BoundingBoxXYZ boundingBox = new()
+            {
+                Transform = t,
 
-            boundingBox.Min = new XYZ(0, - _offset, -1);
-            boundingBox.Max = new XYZ(segmentLength, roomHeight, 1);
+                Min = new XYZ(-_offset, -_offset, UnitUtils.ConvertToInternalUnits(-1, UnitTypeId.Meters)),
+                Max = new XYZ(segmentLength + _offset, roomHeight, UnitUtils.ConvertToInternalUnits(1, UnitTypeId.Meters)),
 
-            boundingBox.Enabled = true;
+                Enabled = true
+            };
 
             return boundingBox;
 
@@ -374,7 +390,7 @@ namespace RoomStudies.Models
 
         private List<ViewSection> CreateSectionView()
         {
-            List<ViewSection> sectionViews = [];
+            List<ViewSection> sectionViews = new();
             if (_relevantSegments.Count == 0)
             {
                 TaskDialog.Show("Error", "No relevant segments found.");
@@ -382,7 +398,7 @@ namespace RoomStudies.Models
             }
             else
             {
-                for (int i = 0; i<_relevantSegments.Count(); i++)
+                for (int i = 0; i<_relevantSegments.Count; i++)
                 {
                     Curve curve = _relevantSegments[i];
                     ElementId viewFamilyTypeId = GetViewTypeId(Doc, "Section", "Building Section");
@@ -396,7 +412,6 @@ namespace RoomStudies.Models
                     }
                     catch (Autodesk.Revit.Exceptions.ArgumentException AE)
                     {
-                        ModelTransaction.RollBack();
                         throw new System.ArgumentException(AE.Message);
                     }
 
@@ -405,76 +420,113 @@ namespace RoomStudies.Models
             }
         }
 
-        private void CreateElevationViews(ElevationMarker elevationMarker)
+        private void CreateElevationViews(ElevationMarker elevationMarker, TransactionHelper transactionHelper)
         {
-            for (int i = 0; i < 4; i++)
+            Debug.WriteLine($"------ {_room.Number} - {_room.Name} ------");
+            for (int i = 1; i < 4; i++)
             {
-                View view = elevationMarker.CreateElevation(Doc, Doc.ActiveView.Id, i);
-                if (view != null)
+                transactionHelper.Execute(() =>
                 {
-                    Viewport.Create(Doc, _viewSheet.Id, view.Id, new XYZ(i, i, 0));
-                    // TransformCropRegion(view);
-                }
+                    bool isOccupied = !elevationMarker.IsAvailableIndex(i);
+                    if (isOccupied)
+                    {
+                        ElementId viewId = elevationMarker.GetViewId(i);
+                        Doc.Delete(viewId);
+                        Debug.WriteLine($"\n------ View at Index {i} was deleted ------\n");
+                    }
+                });
+
+                View newView = null;
+
+                transactionHelper.Execute(() =>
+                {
+                    Debug.WriteLine($"------ Section: {i + 1} ------\n");
+                    newView = elevationMarker.CreateElevation(Doc, Doc.ActiveView.Id, i);
+                    Debug.WriteLine($"Length untransformed: {(newView.CropBox.Max - newView.CropBox.Min).GetLength()}");
+                });
+
+                transactionHelper.Execute(() =>
+                {
+                    TransformCropRegion(newView, newView.CropBox);
+                    CreateViewPort(newView, new XYZ(i, i, 0));
+                });
             }
         }
 
-        private Viewport CreateViewPort(View view, XYZ position, BoundingBoxXYZ boundingBox = null)
+        private Viewport CreateViewPort(View view, XYZ position)
         {
             if (view != null)
             {
                 Viewport viewport = Viewport.Create(Doc, _viewSheet.Id, view.Id, position);
-                if (boundingBox != null)
-                {
-                    ApplyCropRegion(view, boundingBox);
-                }
-                // TransformCropRegion(view);
+                SetBoundingBoxAttributes(view);
                 return viewport;
             }
             return null;
         }
 
-        private void ApplyCropRegion(View view, BoundingBoxXYZ boundingBox)
+        private void SetBoundingBoxAttributes(View view)
         {
-            if (boundingBox == null) return;
+            if (view.CropBox == null) return;
 
-            view.CropBox = boundingBox;
             view.CropBoxActive = true;
-            view.CropBoxVisible = false;
+            view.CropBoxVisible = true;
         }
 
 
-        private void TransformCropRegion(View view)
+        private void TransformCropRegion(View view, BoundingBoxXYZ boundingBox)
         {
-            ElementId cropBoxElementId = ElementUtils.GetCropBoxOfView(view);
+            Transform transform = boundingBox.Transform;
+            Debug.WriteLine($"Bases: \nX: {transform.BasisX}, Y: {transform.BasisY}, Z: {transform.BasisZ}\n");
+            Debug.WriteLine($"Determinant: {transform.Determinant}");
 
-            BoundingBoxXYZ cropBox = view.CropBox;
-            XYZ center = 0.5 * (cropBox.Min + cropBox.Max);
-            Line axis = Line.CreateBound(center, center + XYZ.BasisZ);
-            ElementTransformUtils.RotateElement(Doc, cropBoxElementId, axis, _rotationAngle);
+            XYZ offsetVector = transform.BasisX * _offset + transform.BasisY * _offset + transform.BasisZ * _offset;
 
-            BoundingBoxXYZ boundingBox = view.CropBox;
+            XYZ minTransformed = transform.OfPoint(boundingBox.Min); //Model Coordinate
+            XYZ maxTransformed = transform.OfPoint(boundingBox.Max); //Model Coordinate
 
-            XYZ expandedMin = new
-            (
-                boundingBox.Min.X - Math.Sign(boundingBox.Min.X) * _offset,
-                boundingBox.Min.Y + Math.Sign(boundingBox.Min.Y) * _offset,
-                boundingBox.Min.Z
+            Debug.WriteLine($"BoundingBox Transform:\n{transform}");
+            Debug.WriteLine($"Min (local): {boundingBox.Min}, Max (local): {boundingBox.Max}");
+            Debug.WriteLine($"Min (world): {minTransformed}, Max (world): {maxTransformed}");
+
+            XYZ expandedMin = minTransformed - offsetVector;
+            XYZ expandedMax = maxTransformed + offsetVector;
+
+            Debug.WriteLine($"Expanded Min (world): {expandedMin}, Expanded Max (world): {expandedMax}");
+
+            XYZ finalMin = transform.Inverse.OfPoint(expandedMin);
+            XYZ finalMax = transform.Inverse.OfPoint(expandedMax);
+
+            XYZ correctedMin = new XYZ(
+                Math.Min(finalMin.X, finalMax.X),
+                Math.Min(finalMin.Y, finalMax.Y),
+                Math.Min(finalMin.Z, finalMax.Z)
             );
 
-            XYZ expandedMax = new
-            (
-                boundingBox.Max.X + Math.Sign(boundingBox.Max.X) * _offset,
-                boundingBox.Max.Y - Math.Sign(boundingBox.Max.Y) * _offset,
-                boundingBox.Max.Z
+            XYZ correctedMax = new XYZ(
+                Math.Max(finalMin.X, finalMax.X),
+                Math.Max(finalMin.Y, finalMax.Y),
+                Math.Max(finalMin.Z, finalMax.Z)
             );
 
-
-            view.CropBox = new BoundingBoxXYZ
+            BoundingBoxXYZ newBoundingBox = new BoundingBoxXYZ
             {
-                Min = expandedMin,
-                Max = expandedMax
+                Min = correctedMin, // Korrigierte Werte setzen
+                Max = correctedMax,
+                Transform = transform // Transform beibehalten
             };
 
+            Debug.WriteLine($"Final Min (local): {newBoundingBox.Min}, Final Max (local): {newBoundingBox.Max}");
+            Debug.WriteLine($"Length Old: {UnitUtils.ConvertFromInternalUnits((maxTransformed - minTransformed).GetLength(), UnitTypeId.Meters)}\nLength new: {UnitUtils.ConvertFromInternalUnits((correctedMax - correctedMin).GetLength(), UnitTypeId.Meters)}");
+
+            view.CropBox = newBoundingBox;
+
+
+            if (view.ViewType == ViewType.CeilingPlan || view.ViewType == ViewType.FloorPlan)
+            {
+                ElementId cropBoxElementId = ElementUtils.GetCropBoxOfView(view);
+                Line axis = Line.CreateBound(_rotationCenter.Coord, _rotationCenter.Coord + XYZ.BasisZ);
+                ElementTransformUtils.RotateElement(Doc, cropBoxElementId, axis, _rotationAngle);
+            }
         }
 
         private ElementId GetViewTypeId(Document doc, string familyName, string typeName)
@@ -490,26 +542,51 @@ namespace RoomStudies.Models
 
         private void RotateElement(Element element, XYZ rotationCenter, double angle)
         {
-            element.Rotate(CreateAxisByPoint(rotationCenter), angle);
+            ElementTransformUtils.RotateElement(Doc, element.Id, CreateAxisByPoint(rotationCenter), angle);
         }
+
 
         private Line CreateAxisByPoint(XYZ xyz)
         {
             return Line.CreateUnbound(xyz, XYZ.BasisZ);
         }
 
-
-        private ViewPlan CreateViewPlan(ViewFamily viewFamily)
+        private void CreatePlanViews()
         {
-            var viewFamilyType = new FilteredElementCollector(Doc)
-                .OfClass(typeof(ViewFamilyType))
-                .Cast<ViewFamilyType>()
-                .FirstOrDefault(vft => vft.ViewFamily == viewFamily);
+            ViewPlan Create(ViewFamily viewFamily)
+            {
+                var viewFamilyType = new FilteredElementCollector(Doc)
+                    .OfClass(typeof(ViewFamilyType))
+                    .Cast<ViewFamilyType>()
+                    .FirstOrDefault(vft => vft.ViewFamily == viewFamily);
 
-            if (viewFamilyType == null || Doc.ActiveView.GenLevel == null)
-                return null;
+                if (viewFamilyType == null || Doc.ActiveView.GenLevel == null)
+                    return null;
 
-            return ViewPlan.Create(Doc, viewFamilyType.Id, Doc.ActiveView.GenLevel.Id);
+                return ViewPlan.Create(Doc, viewFamilyType.Id, Doc.ActiveView.GenLevel.Id);
+            }
+
+            ViewPlan floorPlan = Create(ViewFamily.FloorPlan);
+            ViewPlan ceilingPlan = Create(ViewFamily.CeilingPlan);
+
+            TransformCropRegion(floorPlan, _room.get_BoundingBox(floorPlan));
+            TransformCropRegion(ceilingPlan, _room.get_BoundingBox(ceilingPlan));
+
+            CreateViewPort(floorPlan, XYZ.Zero);
+            CreateViewPort(ceilingPlan, XYZ.Zero);
+
+        }
+
+
+
+        private void CreateDebugCurve(Curve curve)
+        {
+            Plane plane = Plane.CreateByNormalAndOrigin(XYZ.BasisZ, curve.GetEndPoint(0));
+            SketchPlane sketchPlane = SketchPlane.Create(Doc, plane);
+
+            ModelCurve modelCurve = Doc.Create.NewModelCurve(curve, sketchPlane);
+            Debug.WriteLine($"Start: {modelCurve.GeometryCurve.GetEndPoint(0)}\nEnd: {modelCurve.GeometryCurve.GetEndPoint(1)}");
+
         }
     }
 }

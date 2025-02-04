@@ -13,6 +13,10 @@
 		<TargetFramework>net48</TargetFramework>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <None Include="..\..\.editorconfig" Link=".editorconfig" />
+	</ItemGroup>
+
     <ItemGroup>
         <PackageReference Include="Nice3point.Revit.Build.Tasks" Version="2.*" />
         <PackageReference Include="Nice3point.Revit.Toolkit" Version="$(RevitVersion).*" />

@@ -16,11 +16,10 @@ namespace RoomStudies.Models
 
         public override void ProcessItems() 
         {
-            ElementId titleBlockId = GetTitleBlockId();
             foreach (var item in SelectedItems)
             {
                 var model = _modelFactory(item);
-                model.CreateRoomStudy(titleBlockId);
+                model.CreateRoomStudy();
             }
 
         }
@@ -39,19 +38,10 @@ namespace RoomStudies.Models
             catch (OperationCanceledException OCE)
             {
                 Console.WriteLine(OCE);
-                ModelTransaction.RollBack();
                 throw new OperationCanceledException("Selection was cancelled");
             }
 
         }
 
-        private ElementId GetTitleBlockId()
-        {
-            FilteredElementCollector collector = new FilteredElementCollector(Doc);
-            collector.OfClass(typeof(FamilySymbol));
-            collector.OfCategory(BuiltInCategory.OST_TitleBlocks);
-            collector.WhereElementIsElementType();
-            return collector.FirstOrDefault().Id;
-        }
     }
 }
