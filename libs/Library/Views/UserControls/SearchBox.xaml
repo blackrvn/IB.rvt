@@ -23,7 +23,8 @@
 
     <Border BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"
             BorderThickness="{Binding BorderThickness, RelativeSource={RelativeSource AncestorType=UserControl}}"
-            CornerRadius="{Binding CornerRadius, RelativeSource={RelativeSource AncestorType=UserControl}}">
+            CornerRadius="{Binding CornerRadius, RelativeSource={RelativeSource AncestorType=UserControl}}"
+            Margin="{Binding Margin, RelativeSource={RelativeSource AncestorType=Border}}">
         <Grid>
             <!-- TextBox with PlaceholderText and SearchText binding -->
             <TextBox Text="{Binding SearchText, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -36,7 +37,8 @@
             <Button Content="X"
                     Style="{StaticResource ClearButton}"
                     Command="{Binding ClearCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=UserControl}}"
+                    Foreground="LightGray"/>
         </Grid>
     </Border>
 </UserControl>

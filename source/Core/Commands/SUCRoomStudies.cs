@@ -20,7 +20,7 @@ namespace Core.Commands
         {
             try
             {
-                MainModel mainModel = Host.GetService<MainModel>();
+                RSMainModel mainModel = Host.GetService<RSMainModel>();
             }
             catch (System.OperationCanceledException e)
             {
@@ -31,6 +31,26 @@ namespace Core.Commands
             {
                 Result = Autodesk.Revit.UI.Result.Failed;
                 ErrorMessage = e.Message;
+            }
+            catch (Exception e)
+            {
+                Result = Autodesk.Revit.UI.Result.Failed;
+                ErrorMessage = e.Message;
+            }
+        }
+    }
+
+
+    [UsedImplicitly]
+    [Transaction(TransactionMode.Manual)]
+    public class SUCRoomStudiesSettings : ExternalCommand
+    {
+        public override void Execute()
+        {
+            try
+            {
+                RSSettingsView view = Host.GetService<RSSettingsView>();
+                view.ShowDialog();
             }
             catch (Exception e)
             {

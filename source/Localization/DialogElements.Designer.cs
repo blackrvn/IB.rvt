@@ -79,6 +79,15 @@ namespace Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to OK.
+        /// </summary>
+        public static string General_ButtonOkName {
+            get {
+                return ResourceManager.GetString("General_ButtonOkName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Save &amp; Apply.
         /// </summary>
         public static string General_ButtonSaveApplyName {
@@ -88,11 +97,56 @@ namespace Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to OK.
+        ///   Looks up a localized string similar to Search....
         /// </summary>
-        public static string Generl_ButtonOkName {
+        public static string General_Search {
             get {
-                return ResourceManager.GetString("Generl_ButtonOkName", resourceCulture);
+                return ResourceManager.GetString("General_Search", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View Template Ceiling.
+        /// </summary>
+        public static string RoomStudy_CeilingTemplateSelector {
+            get {
+                return ResourceManager.GetString("RoomStudy_CeilingTemplateSelector", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View Template Elevation.
+        /// </summary>
+        public static string RoomStudy_ElevationTemplateSelector {
+            get {
+                return ResourceManager.GetString("RoomStudy_ElevationTemplateSelector", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Elevation Type.
+        /// </summary>
+        public static string RoomStudy_ElevationTypeSelector {
+            get {
+                return ResourceManager.GetString("RoomStudy_ElevationTypeSelector", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View Template Floor.
+        /// </summary>
+        public static string RoomStudy_FloorTemplateSelector {
+            get {
+                return ResourceManager.GetString("RoomStudy_FloorTemplateSelector", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Titleblock.
+        /// </summary>
+        public static string RoomStudy_TitleBlockSelector {
+            get {
+                return ResourceManager.GetString("RoomStudy_TitleBlockSelector", resourceCulture);
             }
         }
         

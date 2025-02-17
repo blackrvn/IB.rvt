@@ -42,7 +42,7 @@ namespace SelectSimilar.ViewModels
 
             InitializeUIStrings(
                 PushButtons.SelectSimilar_SettingsName,
-                DialogElements.Generl_ButtonOkName,
+                DialogElements.General_ButtonOkName,
                 DialogElements.General_ButtonCancelName);
             CategoriesHeader = DialogElements.SelectSimilar_CategoriesHeader;
             InitializeCommands();

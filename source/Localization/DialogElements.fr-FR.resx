@@ -153,4 +153,22 @@
   <data name="SelectSimilar_Suppress" xml:space="preserve">
     <value>Supprimer le dialogue principal</value>
   </data>
+  <data name="General_Search" xml:space="preserve">
+    <value>Rechercher...</value>
+  </data>
+  <data name="RoomStudy_TitleBlockSelector" xml:space="preserve">
+    <value>Tête de plan</value>
+  </data>
+  <data name="RoomStudy_FloorTemplateSelector" xml:space="preserve">
+    <value>Modèle de vue Plan</value>
+  </data>
+  <data name="RoomStudy_ElevationTypeSelector" xml:space="preserve">
+    <value>Vue Type</value>
+  </data>
+  <data name="RoomStudy_CeilingTemplateSelector" xml:space="preserve">
+    <value>Modèle de vue Plafond</value>
+  </data>
+  <data name="RoomStudy_ElevationTemplateSelector" xml:space="preserve">
+    <value>Modèle de vue Coupe</value>
+  </data>
 </root>

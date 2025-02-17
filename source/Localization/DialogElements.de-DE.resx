@@ -153,4 +153,22 @@
   <data name="SelectSimilar_Suppress" xml:space="preserve">
     <value>Hauptdialog unterdrücken</value>
   </data>
+  <data name="General_Search" xml:space="preserve">
+    <value>Suchen...</value>
+  </data>
+  <data name="RoomStudy_TitleBlockSelector" xml:space="preserve">
+    <value>Plankopf</value>
+  </data>
+  <data name="RoomStudy_FloorTemplateSelector" xml:space="preserve">
+    <value>Ansichtsvorlage Grundriss</value>
+  </data>
+  <data name="RoomStudy_ElevationTypeSelector" xml:space="preserve">
+    <value>Ansicht Typ</value>
+  </data>
+  <data name="RoomStudy_CeilingTemplateSelector" xml:space="preserve">
+    <value>Ansichtsvorlage Deckenspiegel</value>
+  </data>
+  <data name="RoomStudy_ElevationTemplateSelector" xml:space="preserve">
+    <value>Ansichtsvorlage Ansicht</value>
+  </data>
 </root>

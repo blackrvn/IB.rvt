@@ -9,7 +9,7 @@ using System.Text;
 namespace RoomStudies.Models
 {
 
-    public class RoomStudyModel : ModelBase
+    public class RSModel : ModelBase
     {
         private readonly Room _room;
         private Autodesk.Revit.DB.Point _rotationCenter;
@@ -19,7 +19,7 @@ namespace RoomStudies.Models
         private bool _isRectangular = true;
         private List<Curve> _relevantSegments = new();
 
-        public RoomStudyModel(Room room)
+        public RSModel(Room room)
         {
             _room = room ?? throw new System.ArgumentNullException(nameof(room));
             _offset = UnitUtils.ConvertToInternalUnits(0.5, UnitTypeId.Meters);

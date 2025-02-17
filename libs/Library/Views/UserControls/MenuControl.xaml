@@ -1,0 +1,58 @@
+﻿<UserControl x:Class="Library.Views.UserControls.MenuControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Library.Views.UserControls"
+             xmlns:behaviors="clr-namespace:Library.Views.Behaviors"
+             mc:Ignorable="d" 
+             d:DesignHeight="40" d:DesignWidth="200"
+             x:Name="root">
+    
+    <UserControl.Resources>
+        <!-- Style for ListBoxItem to provide rounded corners, spacing, and selection highlight -->
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="ItemBorder"
+                    Background="Transparent"
+                    CornerRadius="{Binding CornerRadius, ElementName=root}"
+                    Margin="{Binding Spacing, ElementName=root}">
+                            <ContentPresenter HorizontalAlignment="Left" 
+                                VerticalAlignment="Center"
+                                Margin="10,5" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="LightGray" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <!-- Main container -->
+    <Grid>
+        <ListBox ItemsSource="{Binding MenuItems, ElementName=root}"
+             SelectedItem="{Binding CurrentSelection, ElementName=root, Mode=TwoWay}"
+             Background="Transparent"
+             BorderThickness="1"
+             HorizontalContentAlignment="Stretch"
+             VerticalContentAlignment="Center">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <!-- Display the Name property of each ViewModel -->
+                    <TextBlock Text="{Binding Name}" 
+                     FontSize="12"
+                     VerticalAlignment="Center" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</UserControl>

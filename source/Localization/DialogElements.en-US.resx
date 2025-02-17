@@ -153,4 +153,22 @@
   <data name="SelectSimilar_Suppress" xml:space="preserve">
     <value>Suppress main dialog</value>
   </data>
+  <data name="General_Search" xml:space="preserve">
+    <value>Search...</value>
+  </data>
+  <data name="RoomStudy_TitleBlockSelector" xml:space="preserve">
+    <value>Titleblock</value>
+  </data>
+  <data name="RoomStudy_FloorTemplateSelector" xml:space="preserve">
+    <value>View Template Floor</value>
+  </data>
+  <data name="RoomStudy_ElevationTypeSelector" xml:space="preserve">
+    <value>Elevation Type</value>
+  </data>
+  <data name="RoomStudy_CeilingTemplateSelector" xml:space="preserve">
+    <value>View Template Ceiling</value>
+  </data>
+  <data name="RoomStudy_ElevationTemplateSelector" xml:space="preserve">
+    <value>Viewtemplate Elevation</value>
+  </data>
 </root>

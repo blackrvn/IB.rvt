@@ -48,15 +48,15 @@ namespace Core
 
             RibbonPanel RibbonPanelUtils = Application.CreatePanel(UIElements.Utils_PanelName, TabName);
 
-            PulldownButton pullDownButton = (PulldownButton)RibbonPanelUtils.AddPullDownButton("ibssPullDownButton", PushButtons.SelectSimilar_MainName)
+            PulldownButton pullDownButtonSS = (PulldownButton)RibbonPanelUtils.AddPullDownButton("ibssPullDownButton", PushButtons.SelectSimilar_MainName)
                 .SetImage("/Core;component/Resources/Icons/SelectSimilar_PushButtonImageSmall.png")
                 .SetLargeImage("/Core;component/Resources/Icons/SelectSimilar_PushButtonImageLarge.png");
 
-            pullDownButton.AddPushButton<SUCSelectSimilar>(PushButtons.SelectSimilar_MainName)
+            pullDownButtonSS.AddPushButton<SUCSelectSimilar>(PushButtons.SelectSimilar_MainName)
                 .SetImage("/Core;component/Resources/Icons/SelectSimilar_PushButtonImageSmall.png")
                 .SetLargeImage("/Core;component/Resources/Icons/SelectSimilar_PushButtonImageLarge.png");
 
-            pullDownButton.AddPushButton<SUCSelectSimilarSettings>(PushButtons.SelectSimilar_SettingsName)
+            pullDownButtonSS.AddPushButton<SUCSelectSimilarSettings>(PushButtons.SelectSimilar_SettingsName)
                 .SetImage("/Core;component/Resources/Icons/SelectSimilar_SettingsImageSmall.png")
                 .SetLargeImage("/Core;component/Resources/Icons/SelectSimilar_SettingsImageLarge.png");
 
@@ -65,9 +65,17 @@ namespace Core
 
             RibbonPanel RibbonPanelRoomStudies = Application.CreatePanel("Roomstudies", TabName);
 
-            PushButton pushButtonRS = (PushButton)RibbonPanelRoomStudies.AddPushButton<SUCRoomStudies>("RoomStudies")
+            PulldownButton pulldownButtonRS = (PulldownButton)RibbonPanelRoomStudies.AddPullDownButton("ibrsPullDownButton", "RoomStudies")
                 .SetImage("/Core;component/Resources/Icons/RoomStudies_PushButtonImageSmall.png")
                 .SetLargeImage("/Core;component/Resources/Icons/RoomStudies_PushButtonImageLarge.png");
+
+            pulldownButtonRS.AddPushButton<SUCRoomStudies>("RoomStudies")
+                .SetImage("/Core;component/Resources/Icons/RoomStudies_PushButtonImageSmall.png")
+                .SetLargeImage("/Core;component/Resources/Icons/RoomStudies_PushButtonImageLarge.png");
+
+            pulldownButtonRS.AddPushButton<SUCRoomStudiesSettings>("RoomStudies")
+                .SetImage("/Core;component/Resources/Icons/SelectSimilar_SettingsImageSmall.png")
+                .SetLargeImage("/Core;component/Resources/Icons/SelectSimilar_SettingsImageLarge.png");
 
 
         }

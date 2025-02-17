@@ -47,6 +47,7 @@
       <ProjectReference Include="..\..\libs\Library\Library.csproj">
         <ReferenceOutputAssembly>True</ReferenceOutputAssembly>
       </ProjectReference>
+      <ProjectReference Include="..\Localization\Localization.csproj" />
     </ItemGroup>
 
 </Project>

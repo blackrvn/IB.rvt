@@ -40,11 +40,13 @@ namespace Library.Views.Behaviors
 
         private static void InitializePlaceholder(object sender, RoutedEventArgs e)
         {
-            if (sender is SearchBox searchBox && (string.IsNullOrEmpty(searchBox.SearchText) || string.Equals(searchBox.SearchText, PlaceholderTextProperty)))
+            if (sender is SearchBox searchBox &&
+               (string.IsNullOrEmpty(searchBox.SearchText) || string.Equals(searchBox.SearchText, GetPlaceholderText(searchBox))))
             {
                 ShowPlaceholder(searchBox, null);
             }
         }
+
 
         private static void RemovePlaceholder(object sender, RoutedEventArgs e)
         {

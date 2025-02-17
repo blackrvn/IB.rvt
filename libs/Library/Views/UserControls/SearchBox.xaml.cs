@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Drawing.Printing;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -70,5 +71,8 @@ namespace Library.Views.UserControls
         // Using a DependencyProperty as the backing store for BorderThickness.  This enables animation, styling, binding, etc...
         public static new readonly DependencyProperty BorderThicknessProperty =
             DependencyProperty.Register("BorderThickness", typeof(Thickness), typeof(SearchBox), new PropertyMetadata(new Thickness(1)));
+
+
+
     }
 }

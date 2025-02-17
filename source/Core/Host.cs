@@ -8,6 +8,8 @@ using Core.Services;
 using Library.Models;
 using RoomStudies.Models;
 using Autodesk.Revit.DB.Architecture;
+using RoomStudies.ViewModels;
+using RoomStudies.Views;
 
 namespace Core
 {
@@ -30,14 +32,19 @@ namespace Core
             });
 
 
-            builder.Services.AddTransient<Func<Room, RoomStudyModel>>(provider => (room) =>
+            builder.Services.AddTransient<Func<Room, RSModel>>(provider => (room) =>
             {
-                return new RoomStudyModel(room);
+                return new RSModel(room);
             });
 
 
-            builder.Services.AddTransient<IMainModel<Room, RoomStudyModel>, MainModel>();
-            builder.Services.AddTransient<MainModel>();
+            builder.Services.AddTransient<IMainModel<Room, RSModel>, RSMainModel>();
+            builder.Services.AddTransient<RSMainModel>();
+
+            builder.Services.AddTransient<RSSettingsModel>();
+            builder.Services.AddTransient<RSSettingsViewModel>();
+            builder.Services.AddTransient<RSSettingsView>();
+
 
             _host = builder.Build();
             _host.Start();

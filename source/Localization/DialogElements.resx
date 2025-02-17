@@ -129,7 +129,7 @@
   <data name="General_ButtonSaveApplyName" xml:space="preserve">
     <value>Save &amp; Apply</value>
   </data>
-  <data name="Generl_ButtonOkName" xml:space="preserve">
+  <data name="General_ButtonOkName" xml:space="preserve">
     <value>OK</value>
   </data>
   <data name="SelectSimilar_Message" xml:space="preserve">
@@ -155,5 +155,23 @@
   </data>
   <data name="SelectSimilar_Suppress" xml:space="preserve">
     <value>Suppress main dialog</value>
+  </data>
+  <data name="General_Search" xml:space="preserve">
+    <value>Search...</value>
+  </data>
+  <data name="RoomStudy_TitleBlockSelector" xml:space="preserve">
+    <value>Titleblock</value>
+  </data>
+  <data name="RoomStudy_FloorTemplateSelector" xml:space="preserve">
+    <value>View Template Floor</value>
+  </data>
+  <data name="RoomStudy_ElevationTypeSelector" xml:space="preserve">
+    <value>Elevation Type</value>
+  </data>
+  <data name="RoomStudy_CeilingTemplateSelector" xml:space="preserve">
+    <value>View Template Ceiling</value>
+  </data>
+  <data name="RoomStudy_ElevationTemplateSelector" xml:space="preserve">
+    <value>View Template Elevation</value>
   </data>
 </root>

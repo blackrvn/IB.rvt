@@ -6,9 +6,9 @@ using Library.Filters;
 
 namespace RoomStudies.Models
 {
-    public class MainModel : MainModelBase<Room, RoomStudyModel>
+    public class RSMainModel : MainModelBase<Room, RSModel>
     {
-        public MainModel(Func<Room, RoomStudyModel> modelFactory) : base(modelFactory)
+        public RSMainModel(Func<Room, RSModel> modelFactory) : base(modelFactory)
         {
             CollectItems();
             ProcessItems();
