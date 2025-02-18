@@ -49,7 +49,7 @@ namespace Core.Commands
         {
             try
             {
-                RSSettingsView view = Host.GetService<RSSettingsView>();
+                    RSSettingsView view = Host.GetService<RSSettingsView>();
                 view.ShowDialog();
             }
             catch (Exception e)

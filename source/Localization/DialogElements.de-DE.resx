@@ -171,4 +171,10 @@
   <data name="RoomStudy_ElevationTemplateSelector" xml:space="preserve">
     <value>Ansichtsvorlage Ansicht</value>
   </data>
+  <data name="RoomStudy_NamingMenuHeader" xml:space="preserve">
+    <value>Benennung</value>
+  </data>
+  <data name="RoomStudy_TypeMenuHeader" xml:space="preserve">
+    <value>Typen</value>
+  </data>
 </root>

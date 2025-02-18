@@ -142,11 +142,29 @@ namespace Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Naming.
+        /// </summary>
+        public static string RoomStudy_NamingMenuHeader {
+            get {
+                return ResourceManager.GetString("RoomStudy_NamingMenuHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Titleblock.
         /// </summary>
         public static string RoomStudy_TitleBlockSelector {
             get {
                 return ResourceManager.GetString("RoomStudy_TitleBlockSelector", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Types.
+        /// </summary>
+        public static string RoomStudy_TypeMenuHeader {
+            get {
+                return ResourceManager.GetString("RoomStudy_TypeMenuHeader", resourceCulture);
             }
         }
         

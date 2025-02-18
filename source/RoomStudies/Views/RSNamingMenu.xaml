@@ -6,59 +6,61 @@
              xmlns:local="clr-namespace:RoomStudies.Views"
              xmlns:viewModel="clr-namespace:RoomStudies.ViewModels"
              xmlns:userControls="clr-namespace:Library.Views.UserControls;assembly=Library"
-             d:DataContext="{d:DesignInstance viewModel:RSTypeMenuViewModel}"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-
-    <UserControl.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/Library;component/Views/Styles/MergedStyles.xaml" />
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </UserControl.Resources>
+             d:DataContext="{d:DesignInstance viewModel:RSNamingMenuViewModel}"
+             mc:Ignorable="d"
+             d:DesignHeight="400" d:DesignWidth="800">
     <Grid>
-        <StackPanel>
-            <userControls:HeaderedDropDown
-                Header="{Binding HeaderTitleBlock}"
-                ItemsSource="{Binding TitleBlockTypes}"
-                FilteredItems="{Binding FilteredTitleBlockTypes}"
-                SelectedItem="{Binding SelectedTitleBlockType}"
-                SearchText="{Binding SearchText, Mode=TwoWay}"
-                SearchBoxPlaceHolder="{Binding PlaceHolder}"
-                HorizontalAlignment="Stretch"
-                CornerRadius="5"
-                ColumnWidths="{Binding ColumnWidths}"/>
-            <userControls:HeaderedDropDown
-                Header="{Binding HeaderFloorViewTemplate}"
-                ItemsSource="{Binding FloorViewTemplates}"
-                FilteredItems="{Binding FilteredFloorViewTemplates}"
-                SelectedItem="{Binding SelectedFloorViewTemplate}"
-                SearchText="{Binding SearchText, Mode=TwoWay}"
-                SearchBoxPlaceHolder="{Binding PlaceHolder}"
-                HorizontalAlignment="Stretch"
-                CornerRadius="5"
-                ColumnWidths="{Binding ColumnWidths}"/>
-            <userControls:HeaderedDropDown
-                Header="{Binding HeaderCeilingViewTemplate}"
-                ItemsSource="{Binding CeilingViewTemplates}"
-                FilteredItems="{Binding FilteredCeilingViewTemplates}"
-                SelectedItem="{Binding SelectedCeilingViewTemplate}"
-                SearchText="{Binding SearchText, Mode=TwoWay}"
-                SearchBoxPlaceHolder="{Binding PlaceHolder}"
-                HorizontalAlignment="Stretch"
-                CornerRadius="5"
-                ColumnWidths="{Binding ColumnWidths}"/>
-            <userControls:HeaderedDropDown
-                Header="{Binding HeaderElevationViewTemplate}"
-                ItemsSource="{Binding ElevationViewTemplates}"
-                FilteredItems="{Binding FilteredElevationViewTemplates}"
-                SelectedItem="{Binding SelectedElevationViewTemplate}"
-                SearchText="{Binding SearchText, Mode=TwoWay}"
-                SearchBoxPlaceHolder="{Binding PlaceHolder}"
-                HorizontalAlignment="Stretch"
-                CornerRadius="5"
-                ColumnWidths="{Binding ColumnWidths}"/>
-        </StackPanel>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250"/>
+            <ColumnDefinition Width="10"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Left Panel: Available Placeholders -->
+        <Border Grid.Column="0" Margin="5" BorderBrush="Gray" BorderThickness="1" Padding="5">
+            <ListView ItemsSource="{Binding GroupedPlaceholders}">
+                <ListView.GroupStyle>
+                    <GroupStyle>
+                        <GroupStyle.HeaderTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}" FontWeight="Bold" Margin="2"/>
+                            </DataTemplate>
+                        </GroupStyle.HeaderTemplate>
+                    </GroupStyle>
+                </ListView.GroupStyle>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding ParameterName}" 
+                       Margin="3" Padding="2" Background="LightGray" 
+                       MouseMove="Placeholder_MouseMove"/>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Border>
+
+        <!-- Right Panel: Blueprint Builder Area -->
+        <Border Grid.Column="2" Margin="5" BorderBrush="Gray" BorderThickness="1" Padding="5"
+            AllowDrop="True" DragOver="BlueprintBuilder_DragOver" Drop="BlueprintBuilder_Drop">
+            <StackPanel>
+                <ItemsControl ItemsSource="{Binding BlueprintElements}" Name="BlueprintItemsControl">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="DarkGray" BorderThickness="1" Margin="2" Padding="3">
+                                <TextBlock Text="{Binding}"/>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
+        <!-- Button to insert static text -->
+        <Button Grid.Row="1" Grid.Column="2" Content="Insert Static Text"
+            HorizontalAlignment="Right" Margin="5"
+            Click="InsertStaticText_Click"/>
     </Grid>
 </UserControl>

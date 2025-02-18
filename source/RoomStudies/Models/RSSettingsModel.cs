@@ -1,6 +1,7 @@
 ﻿using Library.Models;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -47,6 +48,40 @@ namespace RoomStudies.Models
                 .Where(Element => Element is View view && view.IsTemplate && view.ViewType==viewType)
                 .Cast<View>()
                 .ToList();
+        }
+
+        public ParameterSet GetParametersByBuiltInCategory(BuiltInCategory builtInCategory)
+        {
+            Dictionary<float, Parameter> AddedParams = [];
+            ParameterSet parameterSet = new();
+
+            FilteredElementCollector types = new FilteredElementCollector(Doc)
+                .OfCategory(builtInCategory)
+                .OfClass(typeof(FamilySymbol));
+
+            FilteredElementCollector instances = new FilteredElementCollector(Doc)
+                .OfCategory(builtInCategory)
+                .WhereElementIsNotElementType();
+
+            if (types.GetElementCount() >0)
+            {
+                foreach (Parameter parameter in types.FirstElement().Parameters)
+                {
+                    parameterSet.Insert(parameter);
+                    AddedParams.Add(parameter.Id.Value, parameter);
+                }
+            }
+
+            foreach (Parameter parameter in instances.FirstElement().Parameters)
+            {
+                if (!AddedParams.ContainsKey(parameter.Id.Value))
+                {
+                    parameterSet.Insert(parameter);
+                    AddedParams.Add(parameter.Id.Value, parameter);
+                }
+            }
+
+            return parameterSet;
         }
     }
 }

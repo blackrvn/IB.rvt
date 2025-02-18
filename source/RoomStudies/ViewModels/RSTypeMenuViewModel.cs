@@ -62,7 +62,7 @@ namespace RoomStudies.ViewModels
         public RSTypeMenuViewModel(RSSettingsModel model)
         {
             _model = model;
-            Name = "TypeMenu";
+            Name = Localization.DialogElements.RoomStudy_TypeMenuHeader;
 
             InitializeStrings();
             InitializeCollections();
