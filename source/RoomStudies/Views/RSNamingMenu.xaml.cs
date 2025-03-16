@@ -31,13 +31,14 @@ namespace RoomStudies.Views
         // Forward drop event to the view model command.
         private void BlueprintBuilder_Drop(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.Text))
+            if (e.Data.GetDataPresent(DataFormats.Text) && sender is Border border)
             {
                 string droppedText = (string)e.Data.GetData(DataFormats.Text);
-                if (DataContext is RSNamingMenuViewModel vm &&
-                    vm.InsertPlaceholderCommand.CanExecute(droppedText))
+                string targetTab = border.Tag?.ToString() ?? "Sheet";
+
+                if (DataContext is RSNamingMenuViewModel vm)
                 {
-                    vm.InsertPlaceholderCommand.Execute(droppedText);
+                    vm.InsertPlaceholder(vm.SelectedPlaceholder, targetTab);
                 }
             }
         }
@@ -47,7 +48,8 @@ namespace RoomStudies.Views
         {
             if (DataContext is RSNamingMenuViewModel vm && vm.AddSelectedPlaceholderCommand.CanExecute(null))
             {
-                vm.AddSelectedPlaceholderCommand.Execute(null);
+                string targetTab = vm.IsSheetTabSelected ? "Sheet" : "View";
+                vm.AddSelectedPlaceholderCommand.Execute(targetTab);
             }
         }
 
@@ -56,7 +58,8 @@ namespace RoomStudies.Views
         {
             if (DataContext is RSNamingMenuViewModel vm && vm.RemoveBlueprintElementCommand.CanExecute(null))
             {
-                vm.RemoveBlueprintElementCommand.Execute(null);
+                string targetTab = vm.IsSheetTabSelected ? "Sheet" : "View";
+                vm.RemoveBlueprintElementCommand.Execute(targetTab);
             }
         }
     }

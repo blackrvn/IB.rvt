@@ -13,8 +13,8 @@
     ResizeMode="NoResize"
     WindowStartupLocation="CenterScreen"
     Title="{Binding CommandName}"
-    Height="450"
-    Width="800">
+    Height="700"
+    Width="1000">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -58,6 +58,27 @@
             Grid.Row="1" 
             Grid.Column="1" 
             Content="{Binding CurrentView}"/>
-        
+
+        <Button 
+            Grid.ColumnSpan="3" 
+            Grid.Row="3" 
+            Width="Auto"
+            Height="Auto"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Left"
+            Margin="10,0"
+            Content="{Binding ButtonOKName}" 
+            Command="{Binding OkCommand}"/>
+        <Button 
+            Grid.ColumnSpan="3" 
+            Grid.Row="3" 
+            Width="Auto"
+            Height="Auto"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Right"
+            Margin="10,0"
+            Content="{Binding ButtonCancelName}" 
+            Command="{Binding CancelCommand}"/>
+
     </Grid>
 </libViews:BaseView>

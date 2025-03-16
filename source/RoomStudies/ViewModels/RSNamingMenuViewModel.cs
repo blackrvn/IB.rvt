@@ -19,8 +19,16 @@ namespace RoomStudies.ViewModels
         private readonly RSSettingsModel _model;
         public string Name { get; private set; }
 
-        // The blueprint sequence that the user builds.
-        public ObservableCollection<PlaceholderItem> BlueprintElements { get; } = new ObservableCollection<PlaceholderItem>();
+        // Tab selection properties
+        [ObservableProperty]
+        private bool _isSheetTabSelected = true;
+
+        [ObservableProperty]
+        private bool _isViewTabSelected;
+
+        // The blueprint sequences that the user builds for Sheet and View
+        public ObservableCollection<PlaceholderItem> SheetBlueprintElements { get; } = new ObservableCollection<PlaceholderItem>();
+        public ObservableCollection<PlaceholderItem> ViewBlueprintElements { get; } = new ObservableCollection<PlaceholderItem>();
 
         // Collection of available placeholders (for example, parameters from a room or project).
         public ObservableCollection<PlaceholderItem> AvailablePlaceholders { get; } = new ObservableCollection<PlaceholderItem>();
@@ -35,17 +43,31 @@ namespace RoomStudies.ViewModels
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(RemoveBlueprintElementCommand))]
-        private PlaceholderItem _selectedBlueprintElement;
+        private PlaceholderItem _selectedSheetBlueprintElement;
+
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(RemoveBlueprintElementCommand))]
+        private PlaceholderItem _selectedViewBlueprintElement;
 
         // Commands
-        public IRelayCommand<PlaceholderItem> InsertPlaceholderCommand { get; }
-        public IRelayCommand InsertStaticTextCommand { get; }
-        public IRelayCommand RemoveBlueprintElementCommand { get; }
-        public IRelayCommand AddSelectedPlaceholderCommand { get; }
+        public IRelayCommand<string> InsertPlaceholderCommand { get; }
+        public IRelayCommand<string> InsertStaticTextCommand { get; }
+        public IRelayCommand<string> RemoveBlueprintElementCommand { get; }
+        public IRelayCommand<string> AddSelectedPlaceholderCommand { get; }
 
-        // Text
+        // Text properties
         [ObservableProperty]
-        private string _delimiter;
+        private string _sheetDelimiter;
+
+        [ObservableProperty]
+        private string _viewDelimiter;
+
+        // View numbering options
+        [ObservableProperty]
+        private bool _useLettersForNumbering = true;
+
+        [ObservableProperty]
+        private bool _useNumbersForNumbering;
 
         public RSNamingMenuViewModel(RSSettingsModel model)
         {
@@ -71,54 +93,146 @@ namespace RoomStudies.ViewModels
             GroupedPlaceholders = CollectionViewSource.GetDefaultView(AvailablePlaceholders);
             GroupedPlaceholders.GroupDescriptions.Add(new PropertyGroupDescription("Category"));
 
-            // Initialize commands.
-            InsertPlaceholderCommand = new RelayCommand<PlaceholderItem>(InsertPlaceholder);
-            InsertStaticTextCommand = new RelayCommand<string>(InsertStaticText);
-            RemoveBlueprintElementCommand = new RelayCommand(RemoveSelectedBlueprintElement, CanRemoveBlueprintElement);
-            AddSelectedPlaceholderCommand = new RelayCommand(AddSelectedPlaceholder, CanAddSelectedPlaceholder);
+            // Initialize commands with lambda expressions that capture the parameters
+            InsertPlaceholderCommand = new RelayCommand<string>((targetTab) => InsertPlaceholder(SelectedPlaceholder, targetTab));
+            InsertStaticTextCommand = new RelayCommand<string>((targetTab) => InsertStaticText(targetTab));
+            RemoveBlueprintElementCommand = new RelayCommand<string>(RemoveSelectedBlueprintElement, CanRemoveBlueprintElement);
+            AddSelectedPlaceholderCommand = new RelayCommand<string>(AddSelectedPlaceholder, CanAddSelectedPlaceholder);
+
+            // Initialize tab selection change handling
+            PropertyChanged += TabSelectionChanged;
+
+            // Monitor numbering option changes
+            PropertyChanged += NumberingOptionChanged;
         }
 
-        public void InsertPlaceholder(PlaceholderItem placeholderItem)
+        partial void OnUseLettersForNumberingChanged(bool value)
+        {
+            if (value)
+            {
+                UseNumbersForNumbering = !value;
+            }
+        }
+
+        partial void OnUseNumbersForNumberingChanged(bool value)
+        {
+            if (value)
+            {
+                UseLettersForNumbering = !value;
+            }
+        }
+
+        private void NumberingOptionChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(UseLettersForNumbering) || e.PropertyName == nameof(UseNumbersForNumbering))
+            {
+                Debug.WriteLine($"Numbering option changed: Letters={UseLettersForNumbering}, Numbers={UseNumbersForNumbering}");
+            }
+        }
+
+        private void TabSelectionChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(IsSheetTabSelected))
+            {
+                if (IsSheetTabSelected)
+                {
+                    IsViewTabSelected = false;
+                    Debug.WriteLine("Sheet tab selected");
+                }
+            }
+            else if (e.PropertyName == nameof(IsViewTabSelected))
+            {
+                if (IsViewTabSelected)
+                {
+                    IsSheetTabSelected = false;
+                    Debug.WriteLine("View tab selected");
+                }
+            }
+        }
+
+        public void InsertPlaceholder(PlaceholderItem placeholderItem, string targetTab = null)
         {
             if (placeholderItem != null)
             {
-                BlueprintElements.Add(placeholderItem);
-                Debug.WriteLine($"Inserted placeholder: {placeholderItem.ParameterName}");
+                // Default to the currently selected tab if not specified
+                if (string.IsNullOrEmpty(targetTab))
+                {
+                    targetTab = IsSheetTabSelected ? "Sheet" : "View";
+                }
+
+                if (targetTab == "Sheet")
+                {
+                    SheetBlueprintElements.Add(placeholderItem);
+                }
+                else
+                {
+                    ViewBlueprintElements.Add(placeholderItem);
+                }
+                Debug.WriteLine($"Inserted placeholder: {placeholderItem.ParameterName} into {targetTab} tab");
             }
         }
 
-        public void InsertStaticText(string staticText = "_")
+        public void InsertStaticText(string targetTab, string staticText = "_")
         {
             // In a real application, you might prompt the user for input.
             // Here, we simply insert a fixed static text element.
-            BlueprintElements.Add(new PlaceholderItem { ParameterName = staticText, Id = -1 });
-            Debug.WriteLine($"Inserted static text element: {staticText}");
-        }
-
-        private bool CanRemoveBlueprintElement()
-        {
-            return SelectedBlueprintElement != null;
-        }
-
-        public void RemoveSelectedBlueprintElement()
-        {
-            if (SelectedBlueprintElement != null)
+            if (string.IsNullOrEmpty(targetTab))
             {
-                BlueprintElements.Remove(SelectedBlueprintElement);
-                Debug.WriteLine($"Removed element: {SelectedBlueprintElement}");
+                targetTab = IsSheetTabSelected ? "Sheet" : "View";
+            }
+
+            if (targetTab == "Sheet")
+            {
+                SheetBlueprintElements.Add(new PlaceholderItem { ParameterName = staticText, Id = -1 });
+            }
+            else
+            {
+                ViewBlueprintElements.Add(new PlaceholderItem { ParameterName = staticText, Id = -1 });
+            }
+            Debug.WriteLine($"Inserted static text element: {staticText} into {targetTab} tab");
+        }
+
+        private bool CanRemoveBlueprintElement(string targetTab)
+        {
+            if (string.IsNullOrEmpty(targetTab))
+            {
+                targetTab = IsSheetTabSelected ? "Sheet" : "View";
+            }
+
+            return targetTab == "Sheet"
+                ? SelectedSheetBlueprintElement != null
+                : SelectedViewBlueprintElement != null;
+        }
+
+        public void RemoveSelectedBlueprintElement(string targetTab)
+        {
+            if (string.IsNullOrEmpty(targetTab))
+            {
+                targetTab = IsSheetTabSelected ? "Sheet" : "View";
+            }
+
+            if (targetTab == "Sheet" && SelectedSheetBlueprintElement != null)
+            {
+                SheetBlueprintElements.Remove(SelectedSheetBlueprintElement);
+                Debug.WriteLine($"Removed element from Sheet: {SelectedSheetBlueprintElement.ParameterName}");
+            }
+            else if (targetTab == "View" && SelectedViewBlueprintElement != null)
+            {
+                ViewBlueprintElements.Remove(SelectedViewBlueprintElement);
+                Debug.WriteLine($"Removed element from View: {SelectedViewBlueprintElement.ParameterName}");
             }
         }
 
-        private bool CanAddSelectedPlaceholder()
+        private bool CanAddSelectedPlaceholder(string targetTab)
         {
             return SelectedPlaceholder != null;
         }
 
-        public void AddSelectedPlaceholder()
+        public void AddSelectedPlaceholder(string targetTab)
         {
             if (SelectedPlaceholder != null)
             {
-                InsertPlaceholder(SelectedPlaceholder);
+                InsertPlaceholder(SelectedPlaceholder, targetTab);
             }
         }
 
@@ -129,11 +243,37 @@ namespace RoomStudies.ViewModels
                 Debug.WriteLine(SelectedPlaceholder?.ParameterName ?? "No selection");
                 AddSelectedPlaceholderCommand.NotifyCanExecuteChanged();
             }
-            else if (e.PropertyName == nameof(SelectedBlueprintElement))
+            else if (e.PropertyName == nameof(SelectedSheetBlueprintElement))
             {
-                Debug.WriteLine(SelectedBlueprintElement?.ParameterName ?? "No blueprint element selected");
+                Debug.WriteLine(SelectedSheetBlueprintElement?.ParameterName ?? "No Sheet blueprint element selected");
                 RemoveBlueprintElementCommand.NotifyCanExecuteChanged();
             }
+            else if (e.PropertyName == nameof(SelectedViewBlueprintElement))
+            {
+                Debug.WriteLine(SelectedViewBlueprintElement?.ParameterName ?? "No View blueprint element selected");
+                RemoveBlueprintElementCommand.NotifyCanExecuteChanged();
+            }
+        }
+
+        // Public methods to get the formatted naming blueprint for Sheet and View
+        public string GetFormattedSheetNaming()
+        {
+            return FormatBlueprint(SheetBlueprintElements, SheetDelimiter);
+        }
+
+        public string GetFormattedViewNaming()
+        {
+            return FormatBlueprint(ViewBlueprintElements, ViewDelimiter);
+        }
+
+        private string FormatBlueprint(IEnumerable<PlaceholderItem> elements, string delimiter)
+        {
+            if (elements == null || !elements.Any())
+                return string.Empty;
+
+            // Use IDs instead of parameter names to avoid issues with delimiters in parameter names
+            string result = string.Join(delimiter ?? "_", elements.Select(e => e.Id.ToString()));
+            return result;
         }
     }
 }
