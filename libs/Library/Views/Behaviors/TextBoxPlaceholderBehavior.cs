@@ -1,4 +1,4 @@
-﻿using Library.Views.UserControls;
+﻿using Library.Interfaces;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
@@ -26,47 +26,50 @@ namespace Library.Views.Behaviors
 
         private static void OnPlaceholderTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is SearchBox searchBox)
+            // Instead of checking for SearchBox, we check for IPlaceholderTextHost.
+            if (d is IPlaceholderTextHost && d is FrameworkElement fe)
             {
-                searchBox.GotFocus -= RemovePlaceholder;
-                searchBox.LostFocus -= ShowPlaceholder;
-                searchBox.Loaded -= InitializePlaceholder;
+                // Detach events in case they were previously attached.
+                fe.GotFocus -= RemovePlaceholder;
+                fe.LostFocus -= ShowPlaceholder;
+                fe.Loaded -= InitializePlaceholder;
 
-                searchBox.GotFocus += RemovePlaceholder;
-                searchBox.LostFocus += ShowPlaceholder;
-                searchBox.Loaded += InitializePlaceholder;
+                // Attach events.
+                fe.GotFocus += RemovePlaceholder;
+                fe.LostFocus += ShowPlaceholder;
+                fe.Loaded += InitializePlaceholder;
             }
         }
 
         private static void InitializePlaceholder(object sender, RoutedEventArgs e)
         {
-            if (sender is SearchBox searchBox &&
-               (string.IsNullOrEmpty(searchBox.SearchText) || string.Equals(searchBox.SearchText, GetPlaceholderText(searchBox))))
+            if (sender is IPlaceholderTextHost host)
             {
-                ShowPlaceholder(searchBox, null);
+                string placeholder = GetPlaceholderText((DependencyObject)sender);
+                if (string.IsNullOrEmpty(host.Text) || string.Equals(host.Text, placeholder))
+                {
+                    ShowPlaceholder(sender, null);
+                }
             }
         }
 
-
         private static void RemovePlaceholder(object sender, RoutedEventArgs e)
         {
-            if (sender is SearchBox searchBox && searchBox.Foreground == Brushes.Silver)
+            if (sender is IPlaceholderTextHost host && host.Foreground == Brushes.Silver)
             {
                 Debug.WriteLine("Hide placeholder");
-
-                searchBox.SearchText = string.Empty;
-                searchBox.Foreground = Brushes.Black;
+                host.Text = string.Empty;
+                host.Foreground = Brushes.Black;
             }
         }
 
         private static void ShowPlaceholder(object sender, RoutedEventArgs e)
         {
-            if (sender is SearchBox searchBox && string.IsNullOrEmpty(searchBox.SearchText))
+            if (sender is IPlaceholderTextHost host && string.IsNullOrEmpty(host.Text))
             {
                 Debug.WriteLine("Show placeholder");
-
-                searchBox.SearchText = GetPlaceholderText(searchBox);
-                searchBox.Foreground = Brushes.Silver;
+                host.Text = GetPlaceholderText((DependencyObject)sender);
+                host.Foreground = Brushes.Silver;
             }
         }
     }

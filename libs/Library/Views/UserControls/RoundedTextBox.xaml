@@ -1,0 +1,23 @@
+﻿<UserControl x:Class="Library.Views.UserControls.RoundedTextBox"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Library.Views.UserControls"
+             xmlns:behaviors="clr-namespace:Library.Views.Behaviors"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance local:RoundedTextBox}"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Border x:Name="MainBorder"
+            BorderThickness="1"
+            BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"
+            CornerRadius="{Binding CornerRadius, RelativeSource={RelativeSource AncestorType=UserControl}}">
+        <TextBox x:Name="MainTextBox"
+                 BorderThickness="0"
+                 Background="Transparent"
+                 Padding="5,2"
+                 Text="{Binding Text, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 HorizontalContentAlignment="Left"
+                 VerticalContentAlignment="Center"/>
+    </Border>
+</UserControl>

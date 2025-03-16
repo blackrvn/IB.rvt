@@ -6,6 +6,7 @@
         <ResourceDictionary Source="UserControlStyle.xaml"/>
         <ResourceDictionary Source="ListBoxStyle.xaml"/>
         <ResourceDictionary Source="CheckBoxStyle.xaml"/>
+        <ResourceDictionary Source="ListBoxItemStyle.xaml"/>
     </ResourceDictionary.MergedDictionaries>
 
 </ResourceDictionary>

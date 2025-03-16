@@ -63,9 +63,6 @@ namespace SelectSimilar.ViewModels
         public string GeneralParametersHeader { get; private set; }
 
 
-
-
-
         // Path to Settings.Json
         public string SettingsFilePath { get; private set; }
 

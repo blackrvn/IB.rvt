@@ -7,7 +7,6 @@
              xmlns:behaviors="clr-namespace:Library.Views.Behaviors"
              mc:Ignorable="d" 
              d:DesignHeight="40" d:DesignWidth="200">
-
     <Control.Resources>
         <Style x:Key="ClearButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
@@ -27,12 +26,12 @@
             Margin="{Binding Margin, RelativeSource={RelativeSource AncestorType=Border}}">
         <Grid>
             <!-- TextBox with PlaceholderText and SearchText binding -->
-            <TextBox Text="{Binding SearchText, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            <TextBox x:Name="PART_TextBox"
+                     Text="{Binding SearchText, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      VerticalContentAlignment="Center" HorizontalContentAlignment="Left"
                      FontSize="12" FontStyle="Italic" FontWeight="Light"
                      BorderThickness="0"
                      Background="Transparent"/>
-
             <!-- Clear Button with Command Binding -->
             <Button Content="X"
                     Style="{StaticResource ClearButton}"

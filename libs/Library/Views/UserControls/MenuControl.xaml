@@ -8,33 +8,18 @@
              mc:Ignorable="d" 
              d:DesignHeight="40" d:DesignWidth="200"
              x:Name="root">
-    
+
     <UserControl.Resources>
-        <!-- Style for ListBoxItem to provide rounded corners, spacing, and selection highlight -->
-        <Style TargetType="ListBoxItem">
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ListBoxItem">
-                        <Border x:Name="ItemBorder"
-                    Background="Transparent"
-                    CornerRadius="{Binding CornerRadius, ElementName=root}"
-                    Margin="{Binding Spacing, ElementName=root}">
-                            <ContentPresenter HorizontalAlignment="Left" 
-                                VerticalAlignment="Center"
-                                Margin="10,5" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="ItemBorder" Property="Background" Value="LightGray" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Library;component/Views/Styles/MergedStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Define a style based on GreyListBoxItem but with customized margin -->
+            <Style x:Key="CustomListBoxItemStyle" TargetType="ListBoxItem" BasedOn="{StaticResource GreyListBoxItem}">
+                <Setter Property="Margin" Value="{Binding Spacing, ElementName=root}"/>
+            </Style>
+        </ResourceDictionary>
     </UserControl.Resources>
 
     <!-- Main container -->
@@ -44,7 +29,8 @@
              Background="Transparent"
              BorderThickness="1"
              HorizontalContentAlignment="Stretch"
-             VerticalContentAlignment="Center">
+             VerticalContentAlignment="Center"
+             ItemContainerStyle="{StaticResource CustomListBoxItemStyle}">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <!-- Display the Name property of each ViewModel -->

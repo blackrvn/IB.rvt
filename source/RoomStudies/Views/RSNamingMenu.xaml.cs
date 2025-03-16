@@ -42,13 +42,21 @@ namespace RoomStudies.Views
             }
         }
 
-        // Forward the "Insert Static Text" button click to the view model.
-        private void InsertStaticText_Click(object sender, RoutedEventArgs e)
+        // Handle double-click on placeholders list
+        private void PlaceholdersListView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is RSNamingMenuViewModel vm &&
-                vm.InsertStaticTextCommand.CanExecute(null))
+            if (DataContext is RSNamingMenuViewModel vm && vm.AddSelectedPlaceholderCommand.CanExecute(null))
             {
-                vm.InsertStaticTextCommand.Execute(null);
+                vm.AddSelectedPlaceholderCommand.Execute(null);
+            }
+        }
+
+        // Handle double-click on blueprint items
+        private void BlueprintItemsControl_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (DataContext is RSNamingMenuViewModel vm && vm.RemoveBlueprintElementCommand.CanExecute(null))
+            {
+                vm.RemoveBlueprintElementCommand.Execute(null);
             }
         }
     }
