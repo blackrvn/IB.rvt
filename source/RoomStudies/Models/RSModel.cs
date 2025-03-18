@@ -5,6 +5,7 @@ using Library.Models;
 using Library.Utils;
 using System.Diagnostics;
 using System.Text;
+using RoomStudies.Services;
 
 namespace RoomStudies.Models
 {
@@ -53,6 +54,7 @@ namespace RoomStudies.Models
 
             try
             {
+                var settings = RSSettingsManager.Settings;
                 transactionManager.Execute(new List<Action>([() => CreateSheet(), () => ExtractGeometricalData(), () => CreatePlanViews(), () => SetSheetAttributes()]));
 
                 if (_isRectangular)
@@ -587,6 +589,10 @@ namespace RoomStudies.Models
             ModelCurve modelCurve = Doc.Create.NewModelCurve(curve, sketchPlane);
             Debug.WriteLine($"Start: {modelCurve.GeometryCurve.GetEndPoint(0)}\nEnd: {modelCurve.GeometryCurve.GetEndPoint(1)}");
 
+        }
+
+        private void LoadSettings()
+        { 
         }
     }
 }

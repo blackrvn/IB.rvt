@@ -12,6 +12,7 @@ namespace RoomStudies.Models
 {
     public class RSSettingsModel : ModelBase
     {
+
         private const string SETTINGS_FILENAME = "RoomStudiesSettings.xml";
         private string SettingsFilePath => Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -95,8 +96,8 @@ namespace RoomStudies.Models
         // Properties to store naming settings
         public string SheetNamingFormat { get; set; }
         public string ViewNamingFormat { get; set; }
-        public string SheetDelimiter { get; set; } = "_";  // Default delimiter
-        public string ViewDelimiter { get; set; } = "_";   // Default delimiter
+        public string SheetDelimiter { get; set; }
+        public string ViewDelimiter { get; set; }
         public bool UseLettersForViewNumbering { get; set; } = true;
 
         // Selected types and templates

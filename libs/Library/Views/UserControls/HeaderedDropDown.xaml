@@ -10,96 +10,100 @@
              d:DesignWidth="300"
              x:Name="root">
     <UserControl.Resources>
-        <Style x:Key="CustomToggleButtonStyle" TargetType="ToggleButton">
-            <!-- Remove the default system look -->
-            <Setter Property="OverridesDefaultStyle" Value="True"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <!-- Set a new (unfrozen) SolidColorBrush instance -->
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="HorizontalContentAlignment" Value="Right"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="5"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ToggleButton">
-                        <Border x:Name="border"
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Library;component/Views/Styles/MergedStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <Style x:Key="CustomToggleButtonStyle" TargetType="ToggleButton">
+                <!-- Remove the default system look -->
+                <Setter Property="OverridesDefaultStyle" Value="True"/>
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                <!-- Set a new (unfrozen) SolidColorBrush instance -->
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="HorizontalContentAlignment" Value="Right"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="5"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ToggleButton">
+                            <Border x:Name="border"
                 Background="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}"
                 BorderThickness="{TemplateBinding BorderThickness}"
                 SnapsToDevicePixels="True">
-                            <Grid>
-                                <!-- Attach the VisualStateManager groups on the Grid (a FrameworkElement) -->
-                                <VisualStateManager.VisualStateGroups>
-                                    <VisualStateGroup x:Name="CommonStates">
-                                        <VisualState x:Name="Normal">
-                                            <Storyboard>
-                                                <!-- When leaving MouseOver, animate quickly to Transparent -->
-                                                <ColorAnimation Storyboard.TargetName="border"
+                                <Grid>
+                                    <!-- Attach the VisualStateManager groups on the Grid (a FrameworkElement) -->
+                                    <VisualStateManager.VisualStateGroups>
+                                        <VisualStateGroup x:Name="CommonStates">
+                                            <VisualState x:Name="Normal">
+                                                <Storyboard>
+                                                    <!-- When leaving MouseOver, animate quickly to Transparent -->
+                                                    <ColorAnimation Storyboard.TargetName="border"
                                     Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
                                     To="Transparent"
                                     Duration="0:0:0.1"/>
-                                            </Storyboard>
-                                        </VisualState>
-                                        <VisualState x:Name="MouseOver">
-                                            <Storyboard>
-                                                <!-- On hover, set the color to LightGray instantly -->
-                                                <ColorAnimation Storyboard.TargetName="border"
+                                                </Storyboard>
+                                            </VisualState>
+                                            <VisualState x:Name="MouseOver">
+                                                <Storyboard>
+                                                    <!-- On hover, set the color to LightGray instantly -->
+                                                    <ColorAnimation Storyboard.TargetName="border"
                                     Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
                                     To="LightGray"
                                     Duration="0:0:0"/>
-                                            </Storyboard>
-                                        </VisualState>
-                                        <VisualState x:Name="Pressed">
-                                            <Storyboard>
-                                                <!-- On click, blend more slowly into LightGray -->
-                                                <ColorAnimation Storyboard.TargetName="border"
+                                                </Storyboard>
+                                            </VisualState>
+                                            <VisualState x:Name="Pressed">
+                                                <Storyboard>
+                                                    <!-- On click, blend more slowly into LightGray -->
+                                                    <ColorAnimation Storyboard.TargetName="border"
                                     Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
                                     To="LightGray"
                                     Duration="0:0:0.3"/>
-                                            </Storyboard>
-                                        </VisualState>
-                                        <VisualState x:Name="Disabled"/>
-                                    </VisualStateGroup>
-                                </VisualStateManager.VisualStateGroups>
-                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                </Storyboard>
+                                            </VisualState>
+                                            <VisualState x:Name="Disabled"/>
+                                        </VisualStateGroup>
+                                    </VisualStateManager.VisualStateGroups>
+                                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                            </Grid>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+                                </Grid>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
 
-        <!-- Style/Template for the ComboBox -->
-        <Style x:Key="RoundedSearchComboBoxStyle" TargetType="ComboBox">
-            <Setter Property="OverridesDefaultStyle" Value="True"/>
-            <Setter Property="SnapsToDevicePixels" Value="True" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ComboBox">
-                        <Border x:Name="MainBorder"
+            <!-- Style/Template for the ComboBox -->
+            <Style x:Key="RoundedSearchComboBoxStyle" TargetType="ComboBox">
+                <Setter Property="OverridesDefaultStyle" Value="True"/>
+                <Setter Property="SnapsToDevicePixels" Value="True" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ComboBox">
+                            <Border x:Name="MainBorder"
                                 CornerRadius="{Binding CornerRadius, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                 Background="White"
                                 BorderBrush="LightGray"
                                 BorderThickness="1">
-                            <Grid>
-                                <!-- ToggleButton using the custom style -->
-                                <ToggleButton 
+                                <Grid>
+                                    <!-- ToggleButton using the custom style -->
+                                    <ToggleButton 
                                         x:Name="DropDownToggle"
                                         Style="{StaticResource CustomToggleButtonStyle}"
                                         ClickMode="Press"
                                         IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
-                                    <!-- Arrow symbol -->
-                                    <Path 
+                                        <!-- Arrow symbol -->
+                                        <Path 
                                         Fill="LightGray"
                                         Data="M0,0 L4,4 8,0 Z"
                                         Width="8"
                                         Height="11"
                                         Stretch="Uniform"/>
-                                </ToggleButton>
+                                    </ToggleButton>
 
-                                <!-- Display for the currently selected item -->
-                                <ContentPresenter
+                                    <!-- Display for the currently selected item -->
+                                    <ContentPresenter
                                       x:Name="ContentSite"
                                       Content="{TemplateBinding SelectionBoxItem}"
                                       ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
@@ -110,28 +114,28 @@
                                       RecognizesAccessKey="True"
                                       Height="16"/>
 
-                                <!-- Dropdown-Popup -->
-                                <Popup x:Name="Popup"
+                                    <!-- Dropdown-Popup -->
+                                    <Popup x:Name="Popup"
                                        Placement="Bottom"
                                        IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
                                        AllowsTransparency="True"
                                        Focusable="False"
                                        PopupAnimation="Slide"
                                        VerticalOffset="5">
-                                    <Grid 
+                                        <Grid 
                                         x:Name="DropDown"
                                         SnapsToDevicePixels="True"
                                         MinWidth="{TemplateBinding ActualWidth}"
                                         MaxHeight="{TemplateBinding MaxDropDownHeight}">
-                                        <Grid.RowDefinitions>
-                                            <!-- Row for the search field -->
-                                            <RowDefinition Height="Auto"/>
-                                            <!-- Row for the items list -->
-                                            <RowDefinition Height="*"/>
-                                        </Grid.RowDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <!-- Row for the search field -->
+                                                <RowDefinition Height="Auto"/>
+                                                <!-- Row for the items list -->
+                                                <RowDefinition Height="*"/>
+                                            </Grid.RowDefinitions>
 
-                                        <!-- Border around the dropdown -->
-                                        <Border 
+                                            <!-- Border around the dropdown -->
+                                            <Border 
                                             x:Name="DropDownBorder"
                                             Grid.RowSpan="2"
                                             Background="White"
@@ -139,7 +143,7 @@
                                             BorderThickness="1"
                                             CornerRadius="{Binding CornerRadius, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
 
-                                        <userControls:SearchBox
+                                            <userControls:SearchBox
                                             SearchText="{Binding SearchText, ElementName=root, Mode=TwoWay}"
                                             behavior:TextBoxPlaceholderBehavior.PlaceholderText="{Binding SearchBoxPlaceHolder, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                             Height="20"                                            
@@ -147,50 +151,30 @@
                                             BorderThickness="1"
                                             CornerRadius="{Binding CornerRadius, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
 
-                                        <!-- Items list -->
-                                        <ScrollViewer 
+                                            <!-- Items list -->
+                                            <ScrollViewer 
                                                 Grid.Row="1"
                                                 Margin="5"
                                                 SnapsToDevicePixels="True">
-                                            <StackPanel 
+                                                <StackPanel 
                                                 IsItemsHost="True"
                                                 KeyboardNavigation.DirectionalNavigation="Contained"/>
-                                        </ScrollViewer>
-                                    </Grid>
-                                </Popup>
-                            </Grid>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+                                            </ScrollViewer>
+                                        </Grid>
+                                    </Popup>
+                                </Grid>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
 
-        <!-- Style for ComboBoxItems with rounded corners -->
-        <Style TargetType="ComboBoxItem">
-            <Setter Property="Padding" Value="4"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ComboBoxItem">
-                        <Border x:Name="ItemBorder"
-                    Background="Transparent"
-                    CornerRadius="5"
-                    SnapsToDevicePixels="True">
-                            <ContentPresenter Margin="2"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ItemBorder" Property="Background" Value="LightGray"/>
-                            </Trigger>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="ItemBorder" Property="Background" Value="LightGray"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+
+            <!-- Style for ComboBoxItems with rounded corners -->
+            <Style TargetType="ComboBoxItem" BasedOn="{StaticResource GreyComboBoxItem}" x:Key="CustomComboBoxItem">
+                <Setter Property="Padding" Value="4"/>
+            </Style>
+        </ResourceDictionary>
     </UserControl.Resources>
 
     <!-- Layout for Label + ComboBox -->
@@ -209,6 +193,7 @@
         <!-- ComboBox with the custom style -->
         <ComboBox Grid.Column="1"
               Style="{StaticResource RoundedSearchComboBoxStyle}"
+              ItemContainerStyle="{StaticResource CustomComboBoxItem}"
               ItemsSource="{Binding FilteredItems, RelativeSource={RelativeSource AncestorType=UserControl}}"
               SelectedItem="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=UserControl}}"
               DisplayMemberPath="Name"

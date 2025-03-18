@@ -48,25 +48,38 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="TabItem">
                             <Border x:Name="Border" 
-                                    BorderThickness="0" 
-                                    BorderBrush="LightGray"
-                                    CornerRadius="5,5,0,0" 
-                                    Margin="0,0,5,0" 
-                                    Background="Transparent">
+                        BorderThickness="0" 
+                        BorderBrush="LightGray"
+                        CornerRadius="5,5,0,0" 
+                        Margin="0,0,5,0" 
+                        Background="Transparent">
                                 <ContentPresenter x:Name="ContentSite"
-                                                  VerticalAlignment="Center"
-                                                  HorizontalAlignment="Center"
-                                                  ContentSource="Header"
-                                                  Margin="10,2"/>
+                                      VerticalAlignment="Center"
+                                      HorizontalAlignment="Center"
+                                      ContentSource="Header"
+                                      Margin="10,2"/>
                             </Border>
                             <ControlTemplate.Triggers>
-                                <Trigger Property="IsSelected" Value="True">
-                                    <Setter TargetName="Border" Property="Background" Value="LightGray"/>
-                                    <Setter TargetName="Border" Property="BorderBrush" Value="LightGray"/>
-                                </Trigger>
+                                <!-- Default state -->
                                 <Trigger Property="IsSelected" Value="False">
                                     <Setter TargetName="Border" Property="Background" Value="Transparent"/>
                                     <Setter TargetName="Border" Property="BorderBrush" Value="Transparent"/>
+                                </Trigger>
+
+                                <!-- MouseOver but not selected -->
+                                <MultiTrigger>
+                                    <MultiTrigger.Conditions>
+                                        <Condition Property="IsMouseOver" Value="True"/>
+                                        <Condition Property="IsSelected" Value="False"/>
+                                    </MultiTrigger.Conditions>
+                                    <Setter TargetName="Border" Property="Background" Value="WhiteSmoke"/>
+                                    <Setter TargetName="Border" Property="BorderBrush" Value="WhiteSmoke"/>
+                                </MultiTrigger>
+
+                                <!-- Selected (whether MouseOver or not) -->
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="Border" Property="Background" Value="LightGray"/>
+                                    <Setter TargetName="Border" Property="BorderBrush" Value="LightGray"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -154,7 +167,7 @@
                         </Grid.ColumnDefinitions>
 
                         <Label Grid.Row="0" Grid.Column="0" Content="Delimiter" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                        <userControls:RoundedTextBox Grid.Row="0" Grid.Column="1" Padding="5" CornerRadius="5" BorderBrush="LightGray" Text="{Binding ViewDelimiter}" behaviors:TextBoxPlaceholderBehavior.PlaceholderText="Enter a delimiter..."/>
+                        <userControls:RoundedTextBox Grid.Row="0" Grid.Column="1" Padding="5" CornerRadius="5" BorderBrush="LightGray" Text="{Binding SheetDelimiter, Mode=TwoWay}"/>
                     </Grid>
                 </Grid>
             </TabItem>
@@ -235,7 +248,7 @@
                         </Grid.ColumnDefinitions>
 
                         <Label Grid.Row="0" Grid.Column="0" Content="Delimiter" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                        <userControls:RoundedTextBox Grid.Row="0" Grid.Column="1" Padding="5" CornerRadius="5" BorderBrush="LightGray" Text="{Binding ViewDelimiter}" behaviors:TextBoxPlaceholderBehavior.PlaceholderText="Enter a delimiter..."/>
+                        <userControls:RoundedTextBox Grid.Row="0" Grid.Column="1" Padding="5" CornerRadius="5" BorderBrush="LightGray" Text="{Binding ViewDelimiter, Mode=TwoWay}"/>
 
                         <Label Grid.Row="1" Grid.Column="0" Content="Numbering" HorizontalAlignment="Left" VerticalAlignment="Center"/>
                         <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">

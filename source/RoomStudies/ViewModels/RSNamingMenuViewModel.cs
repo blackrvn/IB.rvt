@@ -106,6 +106,8 @@ namespace RoomStudies.ViewModels
             PropertyChanged += NumberingOptionChanged;
         }
 
+
+
         partial void OnUseLettersForNumberingChanged(bool value)
         {
             if (value)

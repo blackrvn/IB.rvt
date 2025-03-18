@@ -1,18 +1,27 @@
 ﻿using RoomStudies.Models;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 
 namespace RoomStudies.ViewModels
 {
-    public partial class  RSTypeMenuViewModel : ObservableObject
+    public partial class RSTypeMenuViewModel : ObservableObject
     {
         private readonly RSSettingsModel _model;
         public string Name { get; private set; }
 
         [ObservableProperty]
-        private string _searchText;
+        private string _searchTextTitleBlockType;
+        [ObservableProperty]
+        private string _searchTextFloorViewTemplate;
+        [ObservableProperty]
+        private string _searchTextCeilingViewTemplate;
+        [ObservableProperty]
+        private string _searchTextElevationViewTemplate;
         [ObservableProperty]
         private string _placeHolder;
 
@@ -55,9 +64,7 @@ namespace RoomStudies.ViewModels
         public string HeaderCeilingViewTemplate { get; private set; }
         public string HeaderElevationViewTemplate { get; private set; }
 
-
         public ICollection<GridLength> ColumnWidths { get; private set; }
-
 
         public RSTypeMenuViewModel(RSSettingsModel model)
         {
@@ -121,15 +128,31 @@ namespace RoomStudies.ViewModels
             FilteredCeilingViewTemplates = CollectionViewSource.GetDefaultView(CeilingViewTemplates) as CollectionView;
             FilteredElevationViewTemplates = CollectionViewSource.GetDefaultView(ElevationViewTemplates) as CollectionView;
 
-            SearchText = "";
+            SearchTextTitleBlockType = "";
+            SearchTextFloorViewTemplate = "";
+            SearchTextCeilingViewTemplate = "";
+            SearchTextElevationViewTemplate = "";
 
-            FilteredTitleBlockTypes.Filter = FilterTypes;
-            FilteredElevationTypes.Filter = FilterTypes;
-            FilteredFloorViewTemplates.Filter = FilterTypes;
-            FilteredCeilingViewTemplates.Filter = FilterTypes;
-            FilteredElevationViewTemplates.Filter = FilterTypes;
+            // Apply filters with appropriate search text for each collection
+            FilteredTitleBlockTypes.Filter = obj => FilterBySearchText(obj, SearchTextTitleBlockType);
+            FilteredElevationTypes.Filter = obj => FilterBySearchText(obj, ""); // No filtering for elevation types
+            FilteredFloorViewTemplates.Filter = obj => FilterBySearchText(obj, SearchTextFloorViewTemplate);
+            FilteredCeilingViewTemplates.Filter = obj => FilterBySearchText(obj, SearchTextCeilingViewTemplate);
+            FilteredElevationViewTemplates.Filter = obj => FilterBySearchText(obj, SearchTextElevationViewTemplate);
 
+            // Monitor property changes to refresh the appropriate filtered collection
             PropertyChanged += SearchBox_PropertyChanged;
+        }
+
+        private bool FilterBySearchText(object obj, string searchText)
+        {
+            if (obj is Element element)
+            {
+                return element.Name.ToLower().Contains(searchText?.ToLower() ?? "") ||
+                       string.IsNullOrEmpty(searchText) ||
+                       string.Equals(searchText, PlaceHolder);
+            }
+            return false;
         }
 
         private void SelectionChanged(object sender, PropertyChangedEventArgs e)
@@ -157,23 +180,23 @@ namespace RoomStudies.ViewModels
             }
         }
 
-        private bool FilterTypes(object obj)
-        {
-            if (obj is Element element)
-            {
-                return element.Name.ToLower().Contains(SearchText.ToLower()) || string.Equals(SearchText, PlaceHolder);
-            }
-            return false;
-        }
-
         public void SearchBox_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(SearchText))
+            // Refresh the appropriate collection view when a search text property changes
+            if (e.PropertyName == nameof(SearchTextTitleBlockType))
             {
                 FilteredTitleBlockTypes.Refresh();
-                FilteredElevationTypes.Refresh();
+            }
+            else if (e.PropertyName == nameof(SearchTextFloorViewTemplate))
+            {
                 FilteredFloorViewTemplates.Refresh();
+            }
+            else if (e.PropertyName == nameof(SearchTextCeilingViewTemplate))
+            {
                 FilteredCeilingViewTemplates.Refresh();
+            }
+            else if (e.PropertyName == nameof(SearchTextElevationViewTemplate))
+            {
                 FilteredElevationViewTemplates.Refresh();
             }
         }
