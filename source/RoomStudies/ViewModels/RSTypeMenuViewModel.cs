@@ -1,9 +1,6 @@
 ﻿using RoomStudies.Models;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 
@@ -95,19 +92,12 @@ namespace RoomStudies.ViewModels
             ElevationViewTemplates = new(_model.GetViewTemplates(_model.GetElementIds(BuiltInCategory.OST_Views), ViewType.Elevation));
 
             // Try to restore saved selections
-            SelectedTitleBlockType = FindElementById(TitleBlockTypes, _model.SelectedTitleBlockTypeId) ?? TitleBlockTypes.FirstOrDefault();
-            SelectedElevationType = FindElementById(ElevationTypes, _model.SelectedElevationTypeId) ?? ElevationTypes.FirstOrDefault();
-            SelectedFloorViewTemplate = FindElementById(FloorViewTemplates, _model.SelectedFloorViewTemplateId) ?? FloorViewTemplates.FirstOrDefault();
-            SelectedCeilingViewTemplate = FindElementById(CeilingViewTemplates, _model.SelectedCeilingViewTemplateId) ?? CeilingViewTemplates.FirstOrDefault();
-            SelectedElevationViewTemplate = FindElementById(ElevationViewTemplates, _model.SelectedElevationViewTemplateId) ?? ElevationViewTemplates.FirstOrDefault();
-        }
 
-        private T FindElementById<T>(IEnumerable<T> collection, ElementId id) where T : Element
-        {
-            if (id == null || id == ElementId.InvalidElementId)
-                return null;
-
-            return collection.FirstOrDefault(e => e.Id.Value == id.Value);
+            SelectedTitleBlockType = _model.FindElementById(TitleBlockTypes, _model.SelectedTitleBlockTypeId);
+            SelectedElevationType = _model.FindElementById(ElevationTypes, _model.SelectedElevationTypeId);
+            SelectedFloorViewTemplate = _model.FindElementById(FloorViewTemplates, _model.SelectedFloorViewTemplateId);
+            SelectedCeilingViewTemplate = _model.FindElementById(CeilingViewTemplates, _model.SelectedCeilingViewTemplateId);
+            SelectedElevationViewTemplate = _model.FindElementById(ElevationViewTemplates, _model.SelectedElevationViewTemplateId);
         }
 
         private void InitializeStrings()

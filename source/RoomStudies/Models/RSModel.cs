@@ -6,6 +6,7 @@ using Library.Utils;
 using System.Diagnostics;
 using System.Text;
 using RoomStudies.Services;
+using System.Net.NetworkInformation;
 
 namespace RoomStudies.Models
 {
@@ -19,6 +20,8 @@ namespace RoomStudies.Models
         private readonly double _offset;
         private bool _isRectangular = true;
         private List<Curve> _relevantSegments = new();
+        private readonly RSSettingsModel settings = RSSettingsManager.Settings;
+
 
         public RSModel(Room room)
         {
@@ -54,7 +57,6 @@ namespace RoomStudies.Models
 
             try
             {
-                var settings = RSSettingsManager.Settings;
                 transactionManager.Execute(new List<Action>([() => CreateSheet(), () => ExtractGeometricalData(), () => CreatePlanViews(), () => SetSheetAttributes()]));
 
                 if (_isRectangular)
@@ -89,7 +91,6 @@ namespace RoomStudies.Models
                 CreateElevationViews(marker, transactionHelper);
             }
         }
-
         private void ProcessNonRectangularRoom(TransactionHelper transactionHelper)
         {
             transactionHelper.Execute(() =>
@@ -108,7 +109,8 @@ namespace RoomStudies.Models
 
             try
             {
-                _viewSheet.LookupParameter("Sheet Name")?.Set(_room.Name);
+                List<Parameter> parameters = settings.DecodeFormat(_room, settings.SheetNamingFormat, settings.SheetDelimiter);
+                _viewSheet.LookupParameter("Sheet Name")?.Set(ConcatenateName(parameters, settings.SheetDelimiter));
                 _viewSheet.LookupParameter("Sheet Number")?.Set(_room.Number);
             }
             catch (Exception e)
@@ -116,6 +118,33 @@ namespace RoomStudies.Models
                 Console.WriteLine($"Error setting sheet attributes: {e.Message}");
                 throw new Exception("Error setting sheet attributes.");
             }
+        }
+        
+        private string ConcatenateName(List<Parameter> parameters, string delimiter)
+        {
+            StringBuilder sb = new();
+            for (int i = 0; i<parameters.Count(); i++)
+            {
+                Parameter parameter = parameters[i];
+                switch (parameter.StorageType)
+                {
+                    case StorageType.String:
+                        sb.Append(parameter.AsString());
+                        break;
+                    case StorageType.Integer:
+                        sb.Append(parameter.AsInteger());
+                        break;
+                    case StorageType.Double:
+                        sb.Append(parameter.AsBool());
+                        break;
+                    default:
+                        sb.Append(parameter.AsValueString());
+                        break;
+                }
+                if (i < parameters.Count - 1)
+                    sb.Append(delimiter);
+            }
+            return sb.ToString();
         }
 
         private void SetSectionAttributes(ViewSection section, int index)
@@ -125,21 +154,29 @@ namespace RoomStudies.Models
 
             var suffix = new StringBuilder();
 
-            while (true)
+            if (settings.UseLettersForViewNumbering)
             {
-                int remainder = index % 26;
+                while (true)
+                {
+                    int remainder = index % 26;
 
-                char letter = (char)('A' + remainder);
+                    char letter = (char)('A' + remainder);
 
-                suffix.Insert(0, letter);
+                    suffix.Insert(0, letter);
 
-                index = (index / 26) - 1;
+                    index = (index / 26) - 1;
 
-                if (index < 0)
-                    break;
+                    if (index < 0)
+                        break;
+                }
+            }
+            else
+            {
+                suffix.Insert(0, index.ToString());
             }
 
-            section.FindParameter(BuiltInParameter.VIEW_NAME)?.Set($"{_room.Number} - {suffix}");
+            List<Parameter> parameters = settings.DecodeFormat(_room, settings.ViewNamingFormat, settings.ViewDelimiter);
+            section.FindParameter(BuiltInParameter.VIEW_NAME)?.Set($"{ConcatenateName(parameters, settings.ViewDelimiter)}{settings.ViewDelimiter}{suffix}");
 
             section.Scale = 20;
         }
@@ -571,6 +608,9 @@ namespace RoomStudies.Models
             ViewPlan floorPlan = Create(ViewFamily.FloorPlan);
             ViewPlan ceilingPlan = Create(ViewFamily.CeilingPlan);
 
+            SetPlanViewAttributes(floorPlan);
+            SetPlanViewAttributes(ceilingPlan);
+
             TransformCropRegion(floorPlan, _room.get_BoundingBox(floorPlan));
             TransformCropRegion(ceilingPlan, _room.get_BoundingBox(ceilingPlan));
 
@@ -579,7 +619,11 @@ namespace RoomStudies.Models
 
         }
 
-
+        private void SetPlanViewAttributes(View view)
+        {
+            List<Parameter> parameters = settings.DecodeFormat(_room, settings.ViewNamingFormat, settings.ViewDelimiter);
+            view.FindParameter(BuiltInParameter.VIEW_NAME)?.Set($"{ConcatenateName(parameters, settings.ViewDelimiter)}{settings.ViewDelimiter}{view.ViewType}");
+        }
 
         private void CreateDebugCurve(Curve curve)
         {
@@ -589,10 +633,6 @@ namespace RoomStudies.Models
             ModelCurve modelCurve = Doc.Create.NewModelCurve(curve, sketchPlane);
             Debug.WriteLine($"Start: {modelCurve.GeometryCurve.GetEndPoint(0)}\nEnd: {modelCurve.GeometryCurve.GetEndPoint(1)}");
 
-        }
-
-        private void LoadSettings()
-        { 
         }
     }
 }

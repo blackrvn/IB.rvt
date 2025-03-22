@@ -1,4 +1,6 @@
-﻿using Library.Models;
+﻿using Autodesk.Revit.DB;
+using Library.Models;
+using RoomStudies.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -91,6 +93,86 @@ namespace RoomStudies.Models
             return parameterSet;
         }
 
+        public T FindElementById<T>(IEnumerable<T> collection, ElementId id) where T : Element
+        {
+            if (id == null || id == ElementId.InvalidElementId)
+                return null;
+
+            return collection.FirstOrDefault(e => e.Id.Value == id.Value);
+        }
+        private Parameter GetParametersOfElementById(Element element, ElementId id)
+        {
+            return element.Parameters.Cast<Parameter>().Where(p => p.Id == id).First();
+        }
+
+        public List<Parameter> DecodeFormat(Element element, string format, string delimiter)
+        {
+            List<Parameter> parameters = [];
+
+            if (delimiter == "-")
+            {
+                // Special case for hyphen delimiter
+                int pos = 0;
+                StringBuilder currentPart = new StringBuilder();
+                List<string> parts = new List<string>();
+
+                while (pos < format.Length)
+                {
+                    if (pos + 1 < format.Length && format[pos] == '-' && format[pos + 1] == '-')
+                    {
+                        // Found a delimiter (double hyphen)
+                        if (currentPart.Length > 0)
+                        {
+                            parts.Add(currentPart.ToString());
+                            currentPart.Clear();
+                        }
+                        pos += 1; // Skip one hyphens
+                    }
+                    else
+                    {
+                        // Part of a number or a single hyphen (negative sign)
+                        currentPart.Append(format[pos]);
+                        pos++;
+                    }
+                }
+
+                // Add the last part if not empty
+                if (currentPart.Length > 0)
+                {
+                    parts.Add(currentPart.ToString());
+                }
+
+                // Process all parts for hyphen delimiter case
+                foreach (string part in parts)
+                {
+                    if (string.IsNullOrEmpty(part)) continue;
+                    // Try to convert the part to a long ID
+                    if (long.TryParse(part, out long id))
+                    {
+                        parameters.Add(GetParametersOfElementById(element, new ElementId(id)));
+                    }
+                }
+            }
+            else
+            {
+                // Standard approach for other delimiters
+                string[] parts = format.Split(new[] { delimiter }, StringSplitOptions.None);
+
+                foreach (string part in parts)
+                {
+                    if (string.IsNullOrEmpty(part)) continue;
+                    // Try to convert the part to a long ID
+                    if (long.TryParse(part, out long id))
+                    {
+                        parameters.Add(GetParametersOfElementById(element, new ElementId(id)));
+                    }
+                }
+            }
+
+            return parameters;
+        }
+
+
         #region Settings
 
         // Properties to store naming settings
@@ -101,7 +183,7 @@ namespace RoomStudies.Models
         public bool UseLettersForViewNumbering { get; set; } = true;
 
         // Selected types and templates
-        public ElementId SelectedTitleBlockTypeId { get; set; }
+        public ElementId SelectedTitleBlockTypeId { get; set; } 
         public ElementId SelectedElevationTypeId { get; set; }
         public ElementId SelectedFloorViewTemplateId { get; set; }
         public ElementId SelectedCeilingViewTemplateId { get; set; }
@@ -161,7 +243,15 @@ namespace RoomStudies.Models
                 if (namingSettings != null)
                 {
                     SheetNamingFormat = namingSettings.Element("SheetNamingFormat")?.Value;
+                    if (string.IsNullOrEmpty(SheetNamingFormat))
+                    {
+                        SheetNamingFormat = "-1006901_-1006900_-1006916";
+                    }
                     ViewNamingFormat = namingSettings.Element("ViewNamingFormat")?.Value;
+                    if (string.IsNullOrEmpty(ViewNamingFormat))
+                    {
+                        ViewNamingFormat = "-1006901_-1006900_-1006916";
+                    }
 
                     SheetDelimiter = namingSettings.Element("SheetDelimiter")?.Value ?? "_";
                     ViewDelimiter = namingSettings.Element("ViewDelimiter")?.Value ?? "_";
@@ -178,33 +268,68 @@ namespace RoomStudies.Models
                 if (selectedTypes != null)
                 {
                     var titleBlockId = selectedTypes.Element("TitleBlockTypeId")?.Value;
-                    if (!string.IsNullOrEmpty(titleBlockId) && int.TryParse(titleBlockId, out int titleBlockIntId))
+                    if (int.TryParse(titleBlockId, out int titleBlockIntId))
                     {
-                        SelectedTitleBlockTypeId = new ElementId((Int64)titleBlockIntId);
+                        if (!string.IsNullOrEmpty(titleBlockId))
+                        {
+                            SelectedTitleBlockTypeId = new ElementId((Int64)titleBlockIntId);
+                        }
+                        else if (string.IsNullOrEmpty(titleBlockId))
+                        {
+                            SelectedTitleBlockTypeId = GetTypes(BuiltInCategory.OST_TitleBlocks).First().Id;
+                        }
                     }
 
                     var elevationTypeId = selectedTypes.Element("ElevationTypeId")?.Value;
-                    if (!string.IsNullOrEmpty(elevationTypeId) && int.TryParse(elevationTypeId, out int elevationIntId))
+                    if (int.TryParse(elevationTypeId, out int elevationIntId))
                     {
-                        SelectedElevationTypeId = new ElementId((Int64)elevationIntId);
+                        if (!string.IsNullOrEmpty(elevationTypeId))
+                        {
+                            SelectedElevationTypeId = new ElementId((Int64)elevationIntId);
+                        }
+                        else if (string.IsNullOrEmpty(elevationTypeId))
+                        {
+                            SelectedElevationTypeId = GetTypes(BuiltInCategory.OST_Elev).First().Id;
+                        }
                     }
 
                     var floorViewTemplateId = selectedTypes.Element("FloorViewTemplateId")?.Value;
-                    if (!string.IsNullOrEmpty(floorViewTemplateId) && int.TryParse(floorViewTemplateId, out int floorIntId))
+                    if (int.TryParse(floorViewTemplateId, out int floorIntId))
                     {
-                        SelectedFloorViewTemplateId = new ElementId((Int64)floorIntId);
+                        if (!string.IsNullOrEmpty(floorViewTemplateId))
+                        {
+                            SelectedFloorViewTemplateId = new ElementId((Int64)floorIntId);
+                        }
+                        else if (string.IsNullOrEmpty(floorViewTemplateId))
+                        {
+                            SelectedFloorViewTemplateId = GetViewTemplates(GetElementIds(BuiltInCategory.OST_Views), ViewType.FloorPlan).First().Id;
+                        }
                     }
 
                     var ceilingViewTemplateId = selectedTypes.Element("CeilingViewTemplateId")?.Value;
-                    if (!string.IsNullOrEmpty(ceilingViewTemplateId) && int.TryParse(ceilingViewTemplateId, out int ceilingIntId))
+                    if (int.TryParse(ceilingViewTemplateId, out int ceilingIntId))
                     {
-                        SelectedCeilingViewTemplateId = new ElementId((Int64)ceilingIntId);
+                        if (!string.IsNullOrEmpty(ceilingViewTemplateId))
+                        {
+                            SelectedCeilingViewTemplateId = new ElementId((Int64)ceilingIntId);
+                        }
+                        else if (string.IsNullOrEmpty(ceilingViewTemplateId))
+                        {
+                            SelectedCeilingViewTemplateId = GetViewTemplates(GetElementIds(BuiltInCategory.OST_Views), ViewType.CeilingPlan).First().Id;
+                        }
                     }
 
                     var elevationViewTemplateId = selectedTypes.Element("ElevationViewTemplateId")?.Value;
-                    if (!string.IsNullOrEmpty(elevationViewTemplateId) && int.TryParse(elevationViewTemplateId, out int elevationTemplateIntId))
+                    if (int.TryParse(elevationViewTemplateId, out int elevationTemplateIntId))
                     {
-                        SelectedElevationViewTemplateId = new ElementId((Int64)elevationTemplateIntId);
+                        if (!string.IsNullOrEmpty(elevationViewTemplateId))
+                        {
+                            SelectedElevationViewTemplateId = new ElementId((Int64)elevationTemplateIntId);
+                        }
+                        else if (string.IsNullOrEmpty(elevationViewTemplateId))
+                        {
+                            SelectedElevationViewTemplateId = GetViewTemplates(GetElementIds(BuiltInCategory.OST_Views), ViewType.Elevation).First().Id;
+                        }
                     }
                 }
 

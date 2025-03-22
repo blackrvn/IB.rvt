@@ -12,12 +12,13 @@ namespace Library.Services
             {
                 lock (_lock)
                 {
-                    if (_settings == null)
-                    {
-                        _settings = new TModel();
-                        initializeAction?.Invoke(_settings);
-                    }
+                    _settings = new TModel();
+                    initializeAction?.Invoke(_settings);
                 }
+            }
+            else
+            {
+                ReloadSettings(initializeAction);
             }
             return _settings;
         }
