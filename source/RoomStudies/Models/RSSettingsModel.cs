@@ -250,11 +250,12 @@ namespace RoomStudies.Models
                     var titleBlockId = selectedTypes.Element("TitleBlockTypeId")?.Value;
                     if (int.TryParse(titleBlockId, out int titleBlockIntId))
                     {
-                        if (!string.IsNullOrEmpty(titleBlockId) && (IsValidTypeId(SelectedTitleBlockTypeId, BuiltInCategory.OST_TitleBlocks)))
+                        ElementId elementId = new ElementId((Int64)titleBlockIntId);
+                        if (IsValidTypeId(elementId, BuiltInCategory.OST_TitleBlocks))
                         {
-                            SelectedTitleBlockTypeId = new ElementId((Int64)titleBlockIntId);
+                            SelectedTitleBlockTypeId = elementId;
                         }
-                        else if (string.IsNullOrEmpty(titleBlockId) || (!IsValidTypeId(SelectedTitleBlockTypeId, BuiltInCategory.OST_TitleBlocks)))
+                        else
                         {
                             SelectedTitleBlockTypeId = GetTypes(BuiltInCategory.OST_TitleBlocks).First().Id;
                         }
@@ -263,30 +264,29 @@ namespace RoomStudies.Models
                     var elevationTypeId = selectedTypes.Element("ElevationTypeId")?.Value;
                     if (int.TryParse(elevationTypeId, out int elevationIntId))
                     {
-                        if (!string.IsNullOrEmpty(elevationTypeId))
+                        ElementId elementId = new ElementId((Int64)elevationIntId);
+                        if (IsValidTypeId(elementId, BuiltInCategory.OST_Views))
                         {
-                            SelectedElevationTypeId = new ElementId((Int64)elevationIntId);
+                            SelectedElevationTypeId = elementId;
                         }
-                        else if (string.IsNullOrEmpty(elevationTypeId))
+                        else
                         {
-                            SelectedElevationTypeId = new FilteredElementCollector(Doc)
-                                                        .OfClass(typeof(ViewFamilyType))
-                                                        .Cast<ViewFamilyType>()
-                                                        .FirstOrDefault(v => v.FamilyName == Localization.LogicElements.RoomStudies_ElevationFamilyName &&
-                                                                                v.FindParameter(BuiltInParameter.ALL_MODEL_TYPE_NAME)
-                                                                                .AsValueString() == Localization.LogicElements.RoomStudies_ElevationTypeName)
-                                                        ?.Id ?? ElementId.InvalidElementId;
+                            SelectedElevationTypeId = GetViewTypes(ViewFamily.Elevation)
+                                .FirstOrDefault(v => v.FindParameter(BuiltInParameter.ALL_MODEL_TYPE_NAME).AsValueString() == Localization.LogicElements.RoomStudies_ElevationTypeName 
+                                || v.FindParameter(BuiltInParameter.ALL_MODEL_TYPE_NAME).AsValueString().Contains("Interior"))
+                                .Id;
                         }
                     }
 
                     var floorViewTemplateId = selectedTypes.Element("FloorViewTemplateId")?.Value;
                     if (int.TryParse(floorViewTemplateId, out int floorIntId))
                     {
-                        if (!string.IsNullOrEmpty(floorViewTemplateId))
+                        ElementId elementId = new ElementId((Int64)floorIntId);
+                        if (IsValidTypeId(elementId, BuiltInCategory.OST_Views))
                         {
-                            SelectedFloorViewTemplateId = new ElementId((Int64)floorIntId);
+                            SelectedElevationTypeId = elementId;
                         }
-                        else if (string.IsNullOrEmpty(floorViewTemplateId))
+                        else
                         {
                             SelectedFloorViewTemplateId = GetViewTemplates(GetElementIds(BuiltInCategory.OST_Views), ViewType.FloorPlan).First().Id;
                         }
@@ -295,11 +295,12 @@ namespace RoomStudies.Models
                     var ceilingViewTemplateId = selectedTypes.Element("CeilingViewTemplateId")?.Value;
                     if (int.TryParse(ceilingViewTemplateId, out int ceilingIntId))
                     {
-                        if (!string.IsNullOrEmpty(ceilingViewTemplateId))
+                        ElementId elementId = new ElementId((Int64)ceilingIntId);
+                        if (IsValidTypeId(elementId, BuiltInCategory.OST_Views))
                         {
-                            SelectedCeilingViewTemplateId = new ElementId((Int64)ceilingIntId);
+                            SelectedCeilingViewTemplateId = elementId;
                         }
-                        else if (string.IsNullOrEmpty(ceilingViewTemplateId))
+                        else
                         {
                             SelectedCeilingViewTemplateId = GetViewTemplates(GetElementIds(BuiltInCategory.OST_Views), ViewType.CeilingPlan).First().Id;
                         }
@@ -308,11 +309,12 @@ namespace RoomStudies.Models
                     var elevationViewTemplateId = selectedTypes.Element("ElevationViewTemplateId")?.Value;
                     if (int.TryParse(elevationViewTemplateId, out int elevationTemplateIntId))
                     {
-                        if (!string.IsNullOrEmpty(elevationViewTemplateId))
+                        ElementId elementId = new ElementId((Int64)elevationTemplateIntId);
+                        if (IsValidTypeId(elementId, BuiltInCategory.OST_Views))
                         {
-                            SelectedElevationViewTemplateId = new ElementId((Int64)elevationTemplateIntId);
+                            SelectedElevationViewTemplateId = elementId;
                         }
-                        else if (string.IsNullOrEmpty(elevationViewTemplateId))
+                        else
                         {
                             SelectedElevationViewTemplateId = GetViewTemplates(GetElementIds(BuiltInCategory.OST_Views), ViewType.Elevation).First().Id;
                         }

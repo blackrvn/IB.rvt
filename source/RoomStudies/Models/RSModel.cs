@@ -101,7 +101,7 @@ namespace RoomStudies.Models
                 List<ViewSection> viewSections = CreateSectionView();
                 for (int i = 0; i < viewSections.Count; i++)
                 {
-                    CreateViewPort(viewSections[i], new XYZ(i, i, 0));
+                    CreateViewPort(viewSections[i], new XYZ(i, i, 0), CalculateSuffix(i));
                 }
             });
         }
@@ -150,11 +150,8 @@ namespace RoomStudies.Models
             return sb.ToString();
         }
 
-        private void SetSectionAttributes(View section, int index)
+        private string CalculateSuffix(int index)
         {
-            if (index < 0)
-                throw new System.ArgumentOutOfRangeException(nameof(index), "Index muss >= 0 sein.");
-
             var suffix = new StringBuilder();
 
             if (settings.UseLettersForViewNumbering)
@@ -177,6 +174,13 @@ namespace RoomStudies.Models
             {
                 suffix.Insert(0, index.ToString());
             }
+
+            return suffix.ToString();
+        }
+
+        private void SetSectionAttributes(View section, int index)
+        {
+            string suffix = CalculateSuffix(index);
 
             List<Parameter> parameters = settings.DecodeFormat(_room, settings.ViewNamingFormat);
             section.FindParameter(BuiltInParameter.VIEW_NAME)?.Set($"{ConcatenateName(parameters, settings.ViewDelimiter)}{settings.ViewDelimiter}{suffix}");
@@ -274,8 +278,6 @@ namespace RoomStudies.Models
             return result;
         }
 
-
-
         private (Autodesk.Revit.DB.Point, XYZ) CalculateCentroid(IList<IList<BoundarySegment>> segments)
         {
             double x = 0, y = 0, z = 0, maxLength = 0;
@@ -343,32 +345,6 @@ namespace RoomStudies.Models
                 ? referenceVector.Negate().Normalize().AngleTo(unitVector)
                 : referenceVector.Normalize().AngleTo(unitVector);
             return Math.Sign(referenceVector.X) * angle;
-        }
-        
-
-        /*
-        private double CalculateAngle(XYZ referenceVector)
-        {
-            double angle = Math.Atan2(referenceVector.X, referenceVector.Y);
-            return Math.PI / 2 + Math.Sign(referenceVector.X) * angle;
-        }
-        */
-
-        public ISet<ElementId> GetViewSet() => _viewSheet?.GetAllPlacedViews() ?? new HashSet<ElementId>();
-
-        public IList<ElementId> GetAllElementsOnSheet()
-        {
-            if (_viewSheet == null) return new List<ElementId>();
-
-            var categories = new List<BuiltInCategory>
-            {
-                BuiltInCategory.OST_Views,
-                BuiltInCategory.OST_TitleBlocks,
-                BuiltInCategory.OST_LegendComponents,
-                BuiltInCategory.OST_Schedules
-            };
-
-            return _viewSheet.GetDependentElements(new ElementMulticategoryFilter(categories));
         }
 
         private Element CreateElevationMarker(XYZ point)
@@ -459,7 +435,7 @@ namespace RoomStudies.Models
         private void CreateElevationViews(ElevationMarker elevationMarker, TransactionHelper transactionHelper)
         {
             Debug.WriteLine($"------ {_room.Number} - {_room.Name} ------");
-            for (int i = 1; i < 4; i++)
+            for (int i = 0; i < 4; i++)
             {
                 transactionHelper.Execute(() =>
                 {
@@ -478,23 +454,28 @@ namespace RoomStudies.Models
                 {
                     Debug.WriteLine($"------ Section: {i + 1} ------\n");
                     newView = elevationMarker.CreateElevation(Doc, Doc.ActiveView.Id, i);
-                    SetSectionAttributes(newView, i);
+                    SetSectionAttributes(newView, i + 1);
                     Debug.WriteLine($"Length untransformed: {(newView.CropBox.Max - newView.CropBox.Min).GetLength()}");
                 });
 
                 transactionHelper.Execute(() =>
                 {
                     TransformCropRegion(newView, newView.CropBox);
-                    CreateViewPort(newView, new XYZ(i, i, 0));
+                    CreateViewPort(newView, new XYZ(i, i, 0), CalculateSuffix(i));
+
                 });
             }
         }
 
-        private Viewport CreateViewPort(View view, XYZ position)
+        private Viewport CreateViewPort(View view, XYZ position, string viewportNumber = "")
         {
             if (view != null)
             {
                 Viewport viewport = Viewport.Create(Doc, _viewSheet.Id, view.Id, position);
+                if (!string.IsNullOrEmpty(viewportNumber))
+                {
+                    viewport.FindParameter(BuiltInParameter.VIEWPORT_DETAIL_NUMBER)?.Set(viewportNumber);
+                }
                 SetBoundingBoxAttributes(view);
                 return viewport;
             }
