@@ -1,6 +1,7 @@
 ﻿using RoomStudies.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Data;
 
@@ -20,12 +21,14 @@ namespace RoomStudies.ViewModels
         [ObservableProperty]
         private string _searchTextElevationViewTemplate;
         [ObservableProperty]
+        private string _searchTextElevationType;
+        [ObservableProperty]
         private string _placeHolder;
 
         [ObservableProperty]
         public FamilySymbol _selectedTitleBlockType;
         [ObservableProperty]
-        public FamilySymbol _selectedElevationType;
+        public ViewFamilyType _selectedElevationType;
         [ObservableProperty]
         public View _selectedFloorViewTemplate;
         [ObservableProperty]
@@ -36,7 +39,7 @@ namespace RoomStudies.ViewModels
         [ObservableProperty]
         private ObservableCollection<FamilySymbol> _titleBlockTypes;
         [ObservableProperty]
-        private ObservableCollection<FamilySymbol> _elevationTypes;
+        private ObservableCollection<ViewFamilyType> _elevationTypes;
         [ObservableProperty]
         private ObservableCollection<View> _floorViewTemplates;
         [ObservableProperty]
@@ -85,7 +88,7 @@ namespace RoomStudies.ViewModels
         private void InitializeCollections()
         {
             TitleBlockTypes = new(_model.GetTypes(BuiltInCategory.OST_TitleBlocks));
-            ElevationTypes = new(_model.GetTypes(BuiltInCategory.OST_ElevationMarks));
+            ElevationTypes = new(_model.GetViewTypes(ViewFamily.Elevation));
 
             FloorViewTemplates = new(_model.GetViewTemplates(_model.GetElementIds(BuiltInCategory.OST_Views), ViewType.FloorPlan));
             CeilingViewTemplates = new(_model.GetViewTemplates(_model.GetElementIds(BuiltInCategory.OST_Views), ViewType.CeilingPlan));
@@ -151,22 +154,31 @@ namespace RoomStudies.ViewModels
             if (e.PropertyName == nameof(SelectedTitleBlockType) && SelectedTitleBlockType != null)
             {
                 _model.SelectedTitleBlockTypeId = SelectedTitleBlockType.Id;
+                Debug.WriteLine(SelectedTitleBlockType.Id);
             }
             else if (e.PropertyName == nameof(SelectedElevationType) && SelectedElevationType != null)
             {
                 _model.SelectedElevationTypeId = SelectedElevationType.Id;
+                Debug.WriteLine(SelectedElevationType.Id);
+
             }
             else if (e.PropertyName == nameof(SelectedFloorViewTemplate) && SelectedFloorViewTemplate != null)
             {
                 _model.SelectedFloorViewTemplateId = SelectedFloorViewTemplate.Id;
+                Debug.WriteLine(SelectedFloorViewTemplate.Id);
+
             }
             else if (e.PropertyName == nameof(SelectedCeilingViewTemplate) && SelectedCeilingViewTemplate != null)
             {
                 _model.SelectedCeilingViewTemplateId = SelectedCeilingViewTemplate.Id;
+                Debug.WriteLine(SelectedCeilingViewTemplate.Id);
+
             }
             else if (e.PropertyName == nameof(SelectedElevationViewTemplate) && SelectedElevationViewTemplate != null)
             {
                 _model.SelectedElevationViewTemplateId = SelectedElevationViewTemplate.Id;
+                Debug.WriteLine(SelectedElevationViewTemplate.Id);
+
             }
         }
 

@@ -7,6 +7,9 @@ using System.Diagnostics;
 using System.Text;
 using RoomStudies.Services;
 using System.Net.NetworkInformation;
+using System.Collections.ObjectModel;
+using System.Windows.Media;
+using System.Windows.Controls;
 
 namespace RoomStudies.Models
 {
@@ -36,7 +39,7 @@ namespace RoomStudies.Models
         public string SheetName => _viewSheet?.Name ?? "N/A";
 
 
-        private ElementId GetTitleBlockId()
+        private ElementId GetDefaultTitleBlockId()
         {
             FilteredElementCollector collector = new FilteredElementCollector(Doc);
             collector.OfClass(typeof(FamilySymbol));
@@ -47,8 +50,8 @@ namespace RoomStudies.Models
 
         private void CreateSheet()
         {
-            _viewSheet = ViewSheet.Create(Doc, GetTitleBlockId());
-            if (_viewSheet == null) throw new System.InvalidOperationException("Sheet creation failed.");
+            ElementId titleBlockId = settings.SelectedTitleBlockTypeId;
+            _viewSheet = ViewSheet.Create(Doc, titleBlockId ?? GetDefaultTitleBlockId());
         }
 
         public void CreateRoomStudy()
@@ -80,7 +83,7 @@ namespace RoomStudies.Models
         private void ProcessRectangularRoom(TransactionHelper transactionHelper)
         {
             Element elevationMarker = null;
-            transactionHelper.Execute(() => elevationMarker = CreateElevationMarker(_rotationCenter.Coord, "Elevation", "Interior Elevation"));
+            transactionHelper.Execute(() => elevationMarker = CreateElevationMarker(_rotationCenter.Coord));
             if (elevationMarker is ElevationMarker marker)
             {
                 View view = null;
@@ -109,9 +112,9 @@ namespace RoomStudies.Models
 
             try
             {
-                List<Parameter> parameters = settings.DecodeFormat(_room, settings.SheetNamingFormat, settings.SheetDelimiter);
-                _viewSheet.LookupParameter("Sheet Name")?.Set(ConcatenateName(parameters, settings.SheetDelimiter));
-                _viewSheet.LookupParameter("Sheet Number")?.Set(_room.Number);
+                List<Parameter> parameters = settings.DecodeFormat(_room, settings.SheetNamingFormat);
+                _viewSheet.FindParameter(BuiltInParameter.SHEET_NAME)?.Set(ConcatenateName(parameters, settings.SheetDelimiter));
+                _viewSheet.FindParameter(BuiltInParameter.SHEET_NUMBER)?.Set(_room.Number);
             }
             catch (Exception e)
             {
@@ -147,7 +150,7 @@ namespace RoomStudies.Models
             return sb.ToString();
         }
 
-        private void SetSectionAttributes(ViewSection section, int index)
+        private void SetSectionAttributes(View section, int index)
         {
             if (index < 0)
                 throw new System.ArgumentOutOfRangeException(nameof(index), "Index muss >= 0 sein.");
@@ -175,8 +178,9 @@ namespace RoomStudies.Models
                 suffix.Insert(0, index.ToString());
             }
 
-            List<Parameter> parameters = settings.DecodeFormat(_room, settings.ViewNamingFormat, settings.ViewDelimiter);
+            List<Parameter> parameters = settings.DecodeFormat(_room, settings.ViewNamingFormat);
             section.FindParameter(BuiltInParameter.VIEW_NAME)?.Set($"{ConcatenateName(parameters, settings.ViewDelimiter)}{settings.ViewDelimiter}{suffix}");
+            section.FindParameter(BuiltInParameter.VIEW_TEMPLATE)?.Set(settings.SelectedElevationViewTemplateId);
 
             section.Scale = 20;
         }
@@ -313,7 +317,7 @@ namespace RoomStudies.Models
                         }
                         */
                         double angleBetween = UnitUtils.Convert((end - start).AngleTo(nextBoundarySegment.GetCurve().GetEndPoint(1) - nextBoundarySegment.GetCurve().GetEndPoint(0)), UnitTypeId.Radians, UnitTypeId.Degrees);
-                        if ((Math.Round(angleBetween, 2) != 90.00) && _isRectangular) // Check if the angle between two segments is not 90 degrees and hasnt be set to false before
+                        if ((Math.Round(angleBetween, 2) != 90.00) && angleBetween > 5 && _isRectangular) // Check if the angle between two segments is not 90 degrees and hasnt be set to false before
                         {
                             _isRectangular = false;
                         }
@@ -367,16 +371,9 @@ namespace RoomStudies.Models
             return _viewSheet.GetDependentElements(new ElementMulticategoryFilter(categories));
         }
 
-        private Element CreateElevationMarker(XYZ point, string familyName, string typeName)
+        private Element CreateElevationMarker(XYZ point)
         {
-            ElementId viewFamilyTypeId = GetViewTypeId(Doc, familyName, typeName);
-            if (viewFamilyTypeId == ElementId.InvalidElementId)
-            {
-                TaskDialog.Show("Error", $"Family '{familyName}' with type '{typeName}' not found.");
-                return null;
-            }
-
-            return ElevationMarker.CreateElevationMarker(Doc, viewFamilyTypeId, point, 20);
+            return ElevationMarker.CreateElevationMarker(Doc, settings.SelectedElevationTypeId, point, 20);
         }
 
         private BoundingBoxXYZ CreateSectionBoundingBox(Curve segment)
@@ -403,7 +400,7 @@ namespace RoomStudies.Models
                 xDir = xDir.Negate();
             }
 
-            Transform t = Transform.Identity;
+            Autodesk.Revit.DB.Transform t = Autodesk.Revit.DB.Transform.Identity;
             t.BasisX = xDir;
             t.BasisY = yDir;
             t.BasisZ = zDir;
@@ -440,7 +437,7 @@ namespace RoomStudies.Models
                 for (int i = 0; i<_relevantSegments.Count; i++)
                 {
                     Curve curve = _relevantSegments[i];
-                    ElementId viewFamilyTypeId = GetViewTypeId(Doc, "Section", "Building Section");
+                    ElementId viewFamilyTypeId = GetViewTypeId(Doc, "Schnitt", "Building Section");
                     BoundingBoxXYZ sectionBoundingBox = CreateSectionBoundingBox(curve);
                     Debug.WriteLine($"Min: {sectionBoundingBox.Min}\nMax: {sectionBoundingBox.Max}");
                     try
@@ -481,6 +478,7 @@ namespace RoomStudies.Models
                 {
                     Debug.WriteLine($"------ Section: {i + 1} ------\n");
                     newView = elevationMarker.CreateElevation(Doc, Doc.ActiveView.Id, i);
+                    SetSectionAttributes(newView, i);
                     Debug.WriteLine($"Length untransformed: {(newView.CropBox.Max - newView.CropBox.Min).GetLength()}");
                 });
 
@@ -514,7 +512,7 @@ namespace RoomStudies.Models
 
         private void TransformCropRegion(View view, BoundingBoxXYZ boundingBox)
         {
-            Transform transform = boundingBox.Transform;
+            Autodesk.Revit.DB.Transform transform = boundingBox.Transform;
             Debug.WriteLine($"Bases: \nX: {transform.BasisX}, Y: {transform.BasisY}, Z: {transform.BasisZ}\n");
             Debug.WriteLine($"Determinant: {transform.Determinant}");
 
@@ -604,12 +602,11 @@ namespace RoomStudies.Models
 
                 return ViewPlan.Create(Doc, viewFamilyType.Id, Doc.ActiveView.GenLevel.Id);
             }
-
             ViewPlan floorPlan = Create(ViewFamily.FloorPlan);
             ViewPlan ceilingPlan = Create(ViewFamily.CeilingPlan);
 
-            SetPlanViewAttributes(floorPlan);
-            SetPlanViewAttributes(ceilingPlan);
+            SetPlanViewAttributes(floorPlan, settings.SelectedFloorViewTemplateId);
+            SetPlanViewAttributes(ceilingPlan, settings.SelectedCeilingViewTemplateId);
 
             TransformCropRegion(floorPlan, _room.get_BoundingBox(floorPlan));
             TransformCropRegion(ceilingPlan, _room.get_BoundingBox(ceilingPlan));
@@ -619,10 +616,11 @@ namespace RoomStudies.Models
 
         }
 
-        private void SetPlanViewAttributes(View view)
+        private void SetPlanViewAttributes(View view, ElementId TemplateId)
         {
-            List<Parameter> parameters = settings.DecodeFormat(_room, settings.ViewNamingFormat, settings.ViewDelimiter);
+            List<Parameter> parameters = settings.DecodeFormat(_room, settings.ViewNamingFormat);
             view.FindParameter(BuiltInParameter.VIEW_NAME)?.Set($"{ConcatenateName(parameters, settings.ViewDelimiter)}{settings.ViewDelimiter}{view.ViewType}");
+            view.FindParameter(BuiltInParameter.VIEW_TEMPLATE)?.Set(TemplateId);
         }
 
         private void CreateDebugCurve(Curve curve)

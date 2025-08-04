@@ -203,12 +203,12 @@ namespace RoomStudies.ViewModels
             if (isSheet)
             {
                 viewModel.SheetDelimiter = delimiter;
-                LoadBlueprintElements(viewModel.SheetBlueprintElements, format, delimiter);
+                LoadBlueprintElements(viewModel.SheetBlueprintElements, format);
             }
             else
             {
                 viewModel.ViewDelimiter = delimiter;
-                LoadBlueprintElements(viewModel.ViewBlueprintElements, format, delimiter);
+                LoadBlueprintElements(viewModel.ViewBlueprintElements, format);
             }
         }
 
@@ -230,16 +230,16 @@ namespace RoomStudies.ViewModels
             return "_";
         }
 
-        private void LoadBlueprintElements(ObservableCollection<PlaceholderItem> collection, string format, string delimiter)
+        private void LoadBlueprintElements(ObservableCollection<PlaceholderItem> collection, string format)
         {
             // Clear existing elements
             collection.Clear();
 
-            if (string.IsNullOrEmpty(format) || string.IsNullOrEmpty(delimiter))
+            if (string.IsNullOrEmpty(format))
                 return;
 
             // Split the format by delimiter
-            string[] parts = format.Split(new[] { delimiter }, StringSplitOptions.None);
+            string[] parts = format.Split(new[] { "," }, StringSplitOptions.None);
 
             foreach (string part in parts)
             {

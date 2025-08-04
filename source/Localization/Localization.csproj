@@ -31,6 +31,11 @@
         <AutoGen>True</AutoGen>
         <DependentUpon>DialogElements.resx</DependentUpon>
       </Compile>
+      <Compile Update="LogicElements.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>LogicElements.resx</DependentUpon>
+      </Compile>
       <Compile Update="PushButtons.Designer.cs">
         <DesignTime>True</DesignTime>
         <AutoGen>True</AutoGen>
@@ -47,6 +52,10 @@
       <EmbeddedResource Update="DialogElements.resx">
         <Generator>PublicResXFileCodeGenerator</Generator>
         <LastGenOutput>DialogElements.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="LogicElements.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>LogicElements.Designer.cs</LastGenOutput>
       </EmbeddedResource>
       <EmbeddedResource Update="PushButtons.resx">
         <Generator>PublicResXFileCodeGenerator</Generator>

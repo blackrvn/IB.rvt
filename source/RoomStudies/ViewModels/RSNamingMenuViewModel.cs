@@ -215,13 +215,13 @@ namespace RoomStudies.ViewModels
 
             if (targetTab == "Sheet" && SelectedSheetBlueprintElement != null)
             {
-                SheetBlueprintElements.Remove(SelectedSheetBlueprintElement);
                 Debug.WriteLine($"Removed element from Sheet: {SelectedSheetBlueprintElement.ParameterName}");
+                SheetBlueprintElements.Remove(SelectedSheetBlueprintElement);
             }
             else if (targetTab == "View" && SelectedViewBlueprintElement != null)
             {
-                ViewBlueprintElements.Remove(SelectedViewBlueprintElement);
                 Debug.WriteLine($"Removed element from View: {SelectedViewBlueprintElement.ParameterName}");
+                ViewBlueprintElements.Remove(SelectedViewBlueprintElement);
             }
         }
 
@@ -260,21 +260,21 @@ namespace RoomStudies.ViewModels
         // Public methods to get the formatted naming blueprint for Sheet and View
         public string GetFormattedSheetNaming()
         {
-            return FormatBlueprint(SheetBlueprintElements, SheetDelimiter);
+            return FormatBlueprint(SheetBlueprintElements);
         }
 
         public string GetFormattedViewNaming()
         {
-            return FormatBlueprint(ViewBlueprintElements, ViewDelimiter);
+            return FormatBlueprint(ViewBlueprintElements);
         }
 
-        private string FormatBlueprint(IEnumerable<PlaceholderItem> elements, string delimiter)
+        private string FormatBlueprint(IEnumerable<PlaceholderItem> elements)
         {
             if (elements == null || !elements.Any())
                 return string.Empty;
 
             // Use IDs instead of parameter names to avoid issues with delimiters in parameter names
-            string result = string.Join(delimiter ?? "_", elements.Select(e => e.Id.ToString()));
+            string result = string.Join(",", elements.Select(e => e.Id.ToString()));
             return result;
         }
     }

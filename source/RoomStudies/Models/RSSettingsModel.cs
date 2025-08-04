@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 using System.Xml.Linq;
 
 namespace RoomStudies.Models
@@ -35,6 +36,15 @@ namespace RoomStudies.Models
                 .ToList();
         }
 
+        public ICollection<ViewFamilyType> GetViewTypes(ViewFamily viewFamilyType)
+        {
+            return new FilteredElementCollector(Doc)
+                .OfClass(typeof(ViewFamilyType))
+                .Cast<ViewFamilyType>()
+                .Where(vft => vft.ViewFamily == viewFamilyType)
+                .ToList();        
+        }
+
         public ICollection<Element> GetElements(BuiltInCategory builtInCategory)
         {
             return new FilteredElementCollector(Doc)
@@ -57,6 +67,16 @@ namespace RoomStudies.Models
                 .Where(Element => Element is View view && view.IsTemplate && view.ViewType == viewType)
                 .Cast<View>()
                 .ToList();
+        }
+
+        public bool IsValidTypeId(ElementId elementId, BuiltInCategory builtInCategory)
+        {
+            Element element = Doc.GetElement(elementId);
+            if (element == null)
+            {
+                return false;
+            }
+            return element.Category.BuiltInCategory == builtInCategory;
         }
 
         public ParameterSet GetParametersByBuiltInCategory(BuiltInCategory builtInCategory)
@@ -102,73 +122,33 @@ namespace RoomStudies.Models
         }
         private Parameter GetParametersOfElementById(Element element, ElementId id)
         {
-            return element.Parameters.Cast<Parameter>().Where(p => p.Id == id).First();
+            return element.Parameters.Cast<Parameter>().Where(p => p.Id == id).FirstOrDefault();
         }
 
-        public List<Parameter> DecodeFormat(Element element, string format, string delimiter)
+        public List<Parameter> DecodeFormat(Element element, string format)
         {
             List<Parameter> parameters = [];
+            string[] parts = format.Split(new[] {","}, StringSplitOptions.None);
 
-            if (delimiter == "-")
+            foreach (string part in parts)
             {
-                // Special case for hyphen delimiter
-                int pos = 0;
-                StringBuilder currentPart = new StringBuilder();
-                List<string> parts = new List<string>();
-
-                while (pos < format.Length)
+                if (string.IsNullOrEmpty(part)) continue;
+                // Try to convert the part to a long ID
+                if (long.TryParse(part, out long id))
                 {
-                    if (pos + 1 < format.Length && format[pos] == '-' && format[pos + 1] == '-')
+                    Parameter parameter = GetParametersOfElementById(element, new ElementId(id));
+                    if (parameter != null)
                     {
-                        // Found a delimiter (double hyphen)
-                        if (currentPart.Length > 0)
-                        {
-                            parts.Add(currentPart.ToString());
-                            currentPart.Clear();
-                        }
-                        pos += 1; // Skip one hyphens
+                        parameters.Add(parameter);
                     }
                     else
                     {
-                        // Part of a number or a single hyphen (negative sign)
-                        currentPart.Append(format[pos]);
-                        pos++;
-                    }
-                }
-
-                // Add the last part if not empty
-                if (currentPart.Length > 0)
-                {
-                    parts.Add(currentPart.ToString());
-                }
-
-                // Process all parts for hyphen delimiter case
-                foreach (string part in parts)
-                {
-                    if (string.IsNullOrEmpty(part)) continue;
-                    // Try to convert the part to a long ID
-                    if (long.TryParse(part, out long id))
-                    {
-                        parameters.Add(GetParametersOfElementById(element, new ElementId(id)));
+                        ProjectInfo projectInfo = Doc.ProjectInformation;
+                        parameter = projectInfo.Parameters.Cast<Parameter>().Where(p => p.Id == new ElementId(id)).FirstOrDefault();
+                        parameters.Add(parameter);
                     }
                 }
             }
-            else
-            {
-                // Standard approach for other delimiters
-                string[] parts = format.Split(new[] { delimiter }, StringSplitOptions.None);
-
-                foreach (string part in parts)
-                {
-                    if (string.IsNullOrEmpty(part)) continue;
-                    // Try to convert the part to a long ID
-                    if (long.TryParse(part, out long id))
-                    {
-                        parameters.Add(GetParametersOfElementById(element, new ElementId(id)));
-                    }
-                }
-            }
-
             return parameters;
         }
 
@@ -245,12 +225,12 @@ namespace RoomStudies.Models
                     SheetNamingFormat = namingSettings.Element("SheetNamingFormat")?.Value;
                     if (string.IsNullOrEmpty(SheetNamingFormat))
                     {
-                        SheetNamingFormat = "-1006901_-1006900_-1006916";
+                        SheetNamingFormat = "-1006901,-1006900,-1006916";
                     }
                     ViewNamingFormat = namingSettings.Element("ViewNamingFormat")?.Value;
                     if (string.IsNullOrEmpty(ViewNamingFormat))
                     {
-                        ViewNamingFormat = "-1006901_-1006900_-1006916";
+                        ViewNamingFormat = "-1006901,-1006900,-1006916";
                     }
 
                     SheetDelimiter = namingSettings.Element("SheetDelimiter")?.Value ?? "_";
@@ -270,11 +250,11 @@ namespace RoomStudies.Models
                     var titleBlockId = selectedTypes.Element("TitleBlockTypeId")?.Value;
                     if (int.TryParse(titleBlockId, out int titleBlockIntId))
                     {
-                        if (!string.IsNullOrEmpty(titleBlockId))
+                        if (!string.IsNullOrEmpty(titleBlockId) && (IsValidTypeId(SelectedTitleBlockTypeId, BuiltInCategory.OST_TitleBlocks)))
                         {
                             SelectedTitleBlockTypeId = new ElementId((Int64)titleBlockIntId);
                         }
-                        else if (string.IsNullOrEmpty(titleBlockId))
+                        else if (string.IsNullOrEmpty(titleBlockId) || (!IsValidTypeId(SelectedTitleBlockTypeId, BuiltInCategory.OST_TitleBlocks)))
                         {
                             SelectedTitleBlockTypeId = GetTypes(BuiltInCategory.OST_TitleBlocks).First().Id;
                         }
@@ -289,7 +269,13 @@ namespace RoomStudies.Models
                         }
                         else if (string.IsNullOrEmpty(elevationTypeId))
                         {
-                            SelectedElevationTypeId = GetTypes(BuiltInCategory.OST_Elev).First().Id;
+                            SelectedElevationTypeId = new FilteredElementCollector(Doc)
+                                                        .OfClass(typeof(ViewFamilyType))
+                                                        .Cast<ViewFamilyType>()
+                                                        .FirstOrDefault(v => v.FamilyName == Localization.LogicElements.RoomStudies_ElevationFamilyName &&
+                                                                                v.FindParameter(BuiltInParameter.ALL_MODEL_TYPE_NAME)
+                                                                                .AsValueString() == Localization.LogicElements.RoomStudies_ElevationTypeName)
+                                                        ?.Id ?? ElementId.InvalidElementId;
                         }
                     }
 
