@@ -128,7 +128,7 @@ namespace RoomStudies.ViewModels
 
             // Apply filters with appropriate search text for each collection
             FilteredTitleBlockTypes.Filter = obj => FilterBySearchText(obj, SearchTextTitleBlockType);
-            FilteredElevationTypes.Filter = obj => FilterBySearchText(obj, ""); // No filtering for elevation types
+            FilteredElevationTypes.Filter = obj => FilterBySearchText(obj, SearchTextElevationType);
             FilteredFloorViewTemplates.Filter = obj => FilterBySearchText(obj, SearchTextFloorViewTemplate);
             FilteredCeilingViewTemplates.Filter = obj => FilterBySearchText(obj, SearchTextCeilingViewTemplate);
             FilteredElevationViewTemplates.Filter = obj => FilterBySearchText(obj, SearchTextElevationViewTemplate);

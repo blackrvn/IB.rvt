@@ -6,7 +6,9 @@
              xmlns:local="clr-namespace:Library.Views.UserControls"
              xmlns:behaviors="clr-namespace:Library.Views.Behaviors"
              mc:Ignorable="d" 
-             d:DesignHeight="40" d:DesignWidth="200">
+             d:DesignHeight="40" d:DesignWidth="200"
+             Margin="0"
+             Padding="0">
     <Control.Resources>
         <Style x:Key="ClearButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
@@ -22,8 +24,7 @@
 
     <Border BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"
             BorderThickness="{Binding BorderThickness, RelativeSource={RelativeSource AncestorType=UserControl}}"
-            CornerRadius="{Binding CornerRadius, RelativeSource={RelativeSource AncestorType=UserControl}}"
-            Margin="{Binding Margin, RelativeSource={RelativeSource AncestorType=Border}}">
+            CornerRadius="{Binding CornerRadius, RelativeSource={RelativeSource AncestorType=UserControl}}">
         <Grid>
             <!-- TextBox with PlaceholderText and SearchText binding -->
             <TextBox x:Name="PART_TextBox"

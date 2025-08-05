@@ -38,7 +38,7 @@ namespace RoomStudies.Views
 
                 if (DataContext is RSNamingMenuViewModel vm)
                 {
-                    vm.InsertPlaceholder(vm.SelectedPlaceholder, targetTab);
+                    vm.InsertBluePrintItem(vm.SelectedAvailableBlueprint, targetTab);
                 }
             }
         }
@@ -46,20 +46,20 @@ namespace RoomStudies.Views
         // Handle double-click on placeholders list
         private void PlaceholdersListView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is RSNamingMenuViewModel vm && vm.AddSelectedPlaceholderCommand.CanExecute(null))
+            if (DataContext is RSNamingMenuViewModel vm && vm.AddSelectedBlueprintCommand.CanExecute(null))
             {
                 string targetTab = vm.IsSheetTabSelected ? "Sheet" : "View";
-                vm.AddSelectedPlaceholderCommand.Execute(targetTab);
+                vm.AddSelectedBlueprintCommand.Execute(targetTab);
             }
         }
 
         // Handle double-click on blueprint items
         private void BlueprintItemsControl_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is RSNamingMenuViewModel vm && vm.RemoveBlueprintElementCommand.CanExecute(null))
+            if (DataContext is RSNamingMenuViewModel vm && vm.RemoveSelectedBlueprintCommand.CanExecute(null))
             {
                 string targetTab = vm.IsSheetTabSelected ? "Sheet" : "View";
-                vm.RemoveBlueprintElementCommand.Execute(targetTab);
+                vm.RemoveSelectedBlueprintCommand.Execute(targetTab);
             }
         }
     }

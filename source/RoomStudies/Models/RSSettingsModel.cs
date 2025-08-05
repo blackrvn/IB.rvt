@@ -72,11 +72,25 @@ namespace RoomStudies.Models
         public bool IsValidTypeId(ElementId elementId, BuiltInCategory builtInCategory)
         {
             Element element = Doc.GetElement(elementId);
-            if (element == null)
+            if (element is null)
             {
                 return false;
             }
-            return element.Category.BuiltInCategory == builtInCategory;
+            if (element.Category != null)
+            {
+                if (element.Category.BuiltInCategory != BuiltInCategory.INVALID)
+                {
+                    return element.Category.BuiltInCategory == builtInCategory;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public ParameterSet GetParametersByBuiltInCategory(BuiltInCategory builtInCategory)
@@ -284,7 +298,7 @@ namespace RoomStudies.Models
                         ElementId elementId = new ElementId((Int64)floorIntId);
                         if (IsValidTypeId(elementId, BuiltInCategory.OST_Views))
                         {
-                            SelectedElevationTypeId = elementId;
+                            SelectedFloorViewTemplateId = elementId;
                         }
                         else
                         {

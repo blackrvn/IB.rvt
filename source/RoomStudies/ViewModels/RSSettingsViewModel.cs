@@ -129,13 +129,13 @@ namespace RoomStudies.ViewModels
             {
                 // Track changes to sheet and view settings
                 if (e.PropertyName == nameof(RSNamingMenuViewModel.SheetDelimiter) ||
-                    e.PropertyName == nameof(RSNamingMenuViewModel.SheetBlueprintElements))
+                    e.PropertyName == nameof(RSNamingMenuViewModel.CurrentSheetBlueprint))
                 {
                     SheetNamingFormat = namingViewModel.GetFormattedSheetNaming();
                     Debug.WriteLine($"Sheet naming format updated: {SheetNamingFormat}");
                 }
                 else if (e.PropertyName == nameof(RSNamingMenuViewModel.ViewDelimiter) ||
-                         e.PropertyName == nameof(RSNamingMenuViewModel.ViewBlueprintElements))
+                         e.PropertyName == nameof(RSNamingMenuViewModel.CurrentViewBlueprint))
                 {
                     ViewNamingFormat = namingViewModel.GetFormattedViewNaming();
                     Debug.WriteLine($"View naming format updated: {ViewNamingFormat}");
@@ -203,12 +203,12 @@ namespace RoomStudies.ViewModels
             if (isSheet)
             {
                 viewModel.SheetDelimiter = delimiter;
-                LoadBlueprintElements(viewModel.SheetBlueprintElements, format);
+                LoadBlueprintElements(viewModel.CurrentSheetBlueprint, format);
             }
             else
             {
                 viewModel.ViewDelimiter = delimiter;
-                LoadBlueprintElements(viewModel.ViewBlueprintElements, format);
+                LoadBlueprintElements(viewModel.CurrentViewBlueprint, format);
             }
         }
 
@@ -230,7 +230,7 @@ namespace RoomStudies.ViewModels
             return "_";
         }
 
-        private void LoadBlueprintElements(ObservableCollection<PlaceholderItem> collection, string format)
+        private void LoadBlueprintElements(ObservableCollection<BluePrintItem> collection, string format)
         {
             // Clear existing elements
             collection.Clear();
@@ -249,7 +249,7 @@ namespace RoomStudies.ViewModels
                 if (long.TryParse(part, out long id))
                 {
                     // Try to find a matching placeholder in available placeholders
-                    PlaceholderItem placeholder = FindPlaceholderById(id);
+                    BluePrintItem placeholder = FindPlaceholderById(id);
 
                     if (placeholder != null)
                     {
@@ -258,7 +258,7 @@ namespace RoomStudies.ViewModels
                     else
                     {
                         // If we couldn't find a matching placeholder, create a generic one
-                        collection.Add(new PlaceholderItem
+                        collection.Add(new BluePrintItem
                         {
                             Category = "Restored",
                             ParameterName = $"[ID: {id}]",
@@ -269,7 +269,7 @@ namespace RoomStudies.ViewModels
                 else
                 {
                     // If it's not a valid ID (might be an old format or static text), create a generic item
-                    collection.Add(new PlaceholderItem
+                    collection.Add(new BluePrintItem
                     {
                         Category = "Static",
                         ParameterName = part,
@@ -279,18 +279,18 @@ namespace RoomStudies.ViewModels
             }
         }
 
-        private PlaceholderItem FindPlaceholderById(long id)
+        private BluePrintItem FindPlaceholderById(long id)
         {
             // If the current view is a RSNamingMenuViewModel, look in its available placeholders
             if (CurrentView is RSNamingMenuViewModel namingViewModel)
             {
-                return namingViewModel.AvailablePlaceholders.FirstOrDefault(p => p.Id == id);
+                return namingViewModel.AvailableBluePrintsSheet.FirstOrDefault(p => p.Id == id);
             }
 
             // If we don't have a RSNamingMenuViewModel at hand, check all views
             if (Views.Count >= 2 && Views[1] is RSNamingMenuViewModel menuViewModel)
             {
-                return menuViewModel.AvailablePlaceholders.FirstOrDefault(p => p.Id == id);
+                return menuViewModel.AvailableBluePrintsSheet.FirstOrDefault(p => p.Id == id);
             }
 
             // If we can't find it, return null

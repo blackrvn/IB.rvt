@@ -1,4 +1,5 @@
-﻿using Localization;
+﻿using Library.Views.UserControls;
+using Localization;
 using RoomStudies.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -7,7 +8,7 @@ using System.Windows.Data;
 
 namespace RoomStudies.ViewModels
 {
-    public class PlaceholderItem
+    public class BluePrintItem
     {
         public string Category { get; set; }
         public string ParameterName { get; set; }
@@ -27,33 +28,37 @@ namespace RoomStudies.ViewModels
         private bool _isViewTabSelected;
 
         // The blueprint sequences that the user builds for Sheet and View
-        public ObservableCollection<PlaceholderItem> SheetBlueprintElements { get; } = new ObservableCollection<PlaceholderItem>();
-        public ObservableCollection<PlaceholderItem> ViewBlueprintElements { get; } = new ObservableCollection<PlaceholderItem>();
+        public ObservableCollection<BluePrintItem> CurrentSheetBlueprint { get; } = new ObservableCollection<BluePrintItem>(); // Blueprint elements for sheet selected by user
+        public ObservableCollection<BluePrintItem> CurrentViewBlueprint { get; } = new ObservableCollection<BluePrintItem>(); // Blueprint elements for view selected by user
 
         // Collection of available placeholders (for example, parameters from a room or project).
-        public ObservableCollection<PlaceholderItem> AvailablePlaceholders { get; } = new ObservableCollection<PlaceholderItem>();
+        public ObservableCollection<BluePrintItem> AvailableBluePrintsSheet { get; } = new ObservableCollection<BluePrintItem>();
+        public ObservableCollection<BluePrintItem> AvailableBluePrintsView { get; } = new ObservableCollection<BluePrintItem>();
 
-        // A grouped view of AvailablePlaceholders for display.
-        public ICollectionView GroupedPlaceholders { get; }
+
+        // A grouped view of AvailableBluePrintsSheet for display.
+        public ICollectionView GroupedBlueprintSheet { get; set; }
+        public ICollectionView GroupedBlueprintView { get; set; }
+
 
         // Selected items properties
         [ObservableProperty]
-        [NotifyCanExecuteChangedFor(nameof(AddSelectedPlaceholderCommand))]
-        private PlaceholderItem _selectedPlaceholder;
+        [NotifyCanExecuteChangedFor(nameof(AddSelectedBlueprintCommand))]
+        private BluePrintItem _selectedAvailableBlueprint; // The currently selected blueprint item from the available placeholders
 
         [ObservableProperty]
-        [NotifyCanExecuteChangedFor(nameof(RemoveBlueprintElementCommand))]
-        private PlaceholderItem _selectedSheetBlueprintElement;
+        [NotifyCanExecuteChangedFor(nameof(RemoveSelectedBlueprintCommand))]
+        private BluePrintItem _selectedSheetBlueprintElement; // The currently selected blueprint item from the current sheet blueprint
 
         [ObservableProperty]
-        [NotifyCanExecuteChangedFor(nameof(RemoveBlueprintElementCommand))]
-        private PlaceholderItem _selectedViewBlueprintElement;
+        [NotifyCanExecuteChangedFor(nameof(RemoveSelectedBlueprintCommand))]
+        private BluePrintItem _selectedViewBlueprintElement; // The currently selected blueprint item from the current view blueprint
 
         // Commands
-        public IRelayCommand<string> InsertPlaceholderCommand { get; }
-        public IRelayCommand<string> InsertStaticTextCommand { get; }
-        public IRelayCommand<string> RemoveBlueprintElementCommand { get; }
-        public IRelayCommand<string> AddSelectedPlaceholderCommand { get; }
+        public IRelayCommand<string> InsertPlaceholderCommand { get; set; }
+        public IRelayCommand<string> RemoveSelectedBlueprintCommand { get; set; }
+        public IRelayCommand<string> AddSelectedBlueprintCommand { get; set; }
+        public IRelayCommand<object> ClearSearchBoxCommand { get; set; }
 
         // Text properties
         [ObservableProperty]
@@ -69,44 +74,125 @@ namespace RoomStudies.ViewModels
         [ObservableProperty]
         private bool _useNumbersForNumbering;
 
+        // SearchTexts
+        [ObservableProperty]
+        private string _searchTextViews;
+        [ObservableProperty]
+        private string _searchTextSheets;
+        [ObservableProperty]
+        private string _placeHolder;
+
+
         public RSNamingMenuViewModel(RSSettingsModel model)
         {
             _model = model;
             Name = Localization.DialogElements.RoomStudy_NamingMenuHeader;
+            PlaceHolder = Localization.DialogElements.General_Search;
 
+            PropertyChanged += CurrentBluePrint_PropertyChanged;
+            PropertyChanged += SearchBox_PropertyChanged;
+            PropertyChanged += TabSelectionChanged;
+            PropertyChanged += NumberingOptionChanged;
+
+            InitializeCollections();
+            InitializeFiltering();
+            InitializeCommands();
+
+        }
+
+        public void GatherParameters()
+        {
             ParameterSet parameterSetRooms = _model.GetParametersByBuiltInCategory(BuiltInCategory.OST_Rooms);
             ParameterSet paraneterSetProject = _model.GetParametersByBuiltInCategory(BuiltInCategory.OST_ProjectInformation);
-
             // Add placeholders from the room and project parameters.
             foreach (Parameter param in parameterSetRooms)
             {
-                AvailablePlaceholders.Add(new PlaceholderItem { Category = "Room", ParameterName = param.Definition.Name, Id = param.Id.Value });
+                AvailableBluePrintsSheet.Add(new BluePrintItem { Category = "Room", ParameterName = param.Definition.Name, Id = param.Id.Value });
+                AvailableBluePrintsView.Add(new BluePrintItem { Category = "Room", ParameterName = param.Definition.Name, Id = param.Id.Value });
+
             }
             foreach (Parameter param in paraneterSetProject)
             {
-                AvailablePlaceholders.Add(new PlaceholderItem { Category = "Project", ParameterName = param.Definition.Name, Id = param.Id.Value });
+                AvailableBluePrintsSheet.Add(new BluePrintItem { Category = "Project", ParameterName = param.Definition.Name, Id = param.Id.Value });
+                AvailableBluePrintsView.Add(new BluePrintItem { Category = "Project", ParameterName = param.Definition.Name, Id = param.Id.Value });
             }
-
-            PropertyChanged += CurrentPlaceHolder_PropertyChanged;
-
-            // Create a grouped view of the available placeholders by Category.
-            GroupedPlaceholders = CollectionViewSource.GetDefaultView(AvailablePlaceholders);
-            GroupedPlaceholders.GroupDescriptions.Add(new PropertyGroupDescription("Category"));
-
-            // Initialize commands with lambda expressions that capture the parameters
-            InsertPlaceholderCommand = new RelayCommand<string>((targetTab) => InsertPlaceholder(SelectedPlaceholder, targetTab));
-            InsertStaticTextCommand = new RelayCommand<string>((targetTab) => InsertStaticText(targetTab));
-            RemoveBlueprintElementCommand = new RelayCommand<string>(RemoveSelectedBlueprintElement, CanRemoveBlueprintElement);
-            AddSelectedPlaceholderCommand = new RelayCommand<string>(AddSelectedPlaceholder, CanAddSelectedPlaceholder);
-
-            // Initialize tab selection change handling
-            PropertyChanged += TabSelectionChanged;
-
-            // Monitor numbering option changes
-            PropertyChanged += NumberingOptionChanged;
         }
 
+        private void InitializeCollections()
+        {
+            GatherParameters();
 
+            GroupedBlueprintSheet = CollectionViewSource.GetDefaultView(AvailableBluePrintsSheet);
+            GroupedBlueprintView = CollectionViewSource.GetDefaultView(AvailableBluePrintsView);
+
+            GroupedBlueprintSheet.GroupDescriptions.Add(new PropertyGroupDescription("Category"));
+            GroupedBlueprintView.GroupDescriptions.Add(new PropertyGroupDescription("Category"));
+
+        }
+
+        private void InitializeFiltering()
+        {
+            SearchTextSheets = string.Empty;
+            SearchTextViews = string.Empty;
+
+            if (IsSheetTabSelected)
+            {
+                GroupedBlueprintSheet.Filter = obj => FilterBySearchText(obj, SearchTextSheets);
+            }
+            else if (IsViewTabSelected)
+            {
+                GroupedBlueprintSheet.Filter = obj => FilterBySearchText(obj, SearchTextViews);
+            }
+
+        }
+
+        private void InitializeCommands()
+        {
+            // Initialize commands with lambda expressions that capture the parameters
+            InsertPlaceholderCommand = new RelayCommand<string>((targetTab) => InsertBluePrintItem(SelectedAvailableBlueprint, targetTab));
+            RemoveSelectedBlueprintCommand = new RelayCommand<string>(RemoveSelectedBlueprintElement, CanRemoveBlueprintElement);
+            AddSelectedBlueprintCommand = new RelayCommand<string>(AddSelectedBluePrint, CanAddSelectedBluePrint);
+            ClearSearchBoxCommand = new RelayCommand<object>(ClearSearchBox);
+        }
+
+        private bool FilterBySearchText(object obj, string searchText)
+        {
+            if (obj is BluePrintItem bluePrint)
+            {
+                return bluePrint.ParameterName.ToLower().Contains(searchText?.ToLower() ?? "") ||
+                       string.IsNullOrEmpty(searchText) ||
+                       string.Equals(searchText, PlaceHolder);
+            } 
+            return false;
+        }
+
+        private void ClearSearchBox(object parameter)
+        {
+            if (parameter is SearchBox searchBox)
+            {
+                searchBox.SearchText = string.Empty;
+            }
+            else if (parameter == null)
+            {
+                Debug.WriteLine("Sender is null");
+            }
+        }
+
+        public void SearchBox_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            // Refresh the appropriate collection view when a search text property changes
+            if (e.PropertyName == nameof(SearchTextSheets))
+            {
+                GroupedBlueprintSheet.Refresh();
+                Debug.WriteLine($"{nameof(GroupedBlueprintSheet)} was refreshed");
+
+            }
+            else if (e.PropertyName == nameof(SearchTextViews))
+            {
+                GroupedBlueprintView.Refresh();
+                Debug.WriteLine($"{nameof(GroupedBlueprintView)} was refreshed");
+            }
+        }
 
         partial void OnUseLettersForNumberingChanged(bool value)
         {
@@ -152,9 +238,9 @@ namespace RoomStudies.ViewModels
             }
         }
 
-        public void InsertPlaceholder(PlaceholderItem placeholderItem, string targetTab = null)
+        public void InsertBluePrintItem(BluePrintItem bluePrintItem, string targetTab = null)
         {
-            if (placeholderItem != null)
+            if (bluePrintItem != null)
             {
                 // Default to the currently selected tab if not specified
                 if (string.IsNullOrEmpty(targetTab))
@@ -164,34 +250,14 @@ namespace RoomStudies.ViewModels
 
                 if (targetTab == "Sheet")
                 {
-                    SheetBlueprintElements.Add(placeholderItem);
+                    CurrentSheetBlueprint.Add(bluePrintItem);
                 }
                 else
                 {
-                    ViewBlueprintElements.Add(placeholderItem);
+                    CurrentViewBlueprint.Add(bluePrintItem);
                 }
-                Debug.WriteLine($"Inserted placeholder: {placeholderItem.ParameterName} into {targetTab} tab");
+                Debug.WriteLine($"Inserted blueprint: {bluePrintItem.ParameterName} into {targetTab} tab");
             }
-        }
-
-        public void InsertStaticText(string targetTab, string staticText = "_")
-        {
-            // In a real application, you might prompt the user for input.
-            // Here, we simply insert a fixed static text element.
-            if (string.IsNullOrEmpty(targetTab))
-            {
-                targetTab = IsSheetTabSelected ? "Sheet" : "View";
-            }
-
-            if (targetTab == "Sheet")
-            {
-                SheetBlueprintElements.Add(new PlaceholderItem { ParameterName = staticText, Id = -1 });
-            }
-            else
-            {
-                ViewBlueprintElements.Add(new PlaceholderItem { ParameterName = staticText, Id = -1 });
-            }
-            Debug.WriteLine($"Inserted static text element: {staticText} into {targetTab} tab");
         }
 
         private bool CanRemoveBlueprintElement(string targetTab)
@@ -216,59 +282,59 @@ namespace RoomStudies.ViewModels
             if (targetTab == "Sheet" && SelectedSheetBlueprintElement != null)
             {
                 Debug.WriteLine($"Removed element from Sheet: {SelectedSheetBlueprintElement.ParameterName}");
-                SheetBlueprintElements.Remove(SelectedSheetBlueprintElement);
+                CurrentSheetBlueprint.Remove(SelectedSheetBlueprintElement);
             }
             else if (targetTab == "View" && SelectedViewBlueprintElement != null)
             {
                 Debug.WriteLine($"Removed element from View: {SelectedViewBlueprintElement.ParameterName}");
-                ViewBlueprintElements.Remove(SelectedViewBlueprintElement);
+                CurrentViewBlueprint.Remove(SelectedViewBlueprintElement);
             }
         }
 
-        private bool CanAddSelectedPlaceholder(string targetTab)
+        private bool CanAddSelectedBluePrint(string targetTab)
         {
-            return SelectedPlaceholder != null;
+            return SelectedAvailableBlueprint != null;
         }
 
-        public void AddSelectedPlaceholder(string targetTab)
+        public void AddSelectedBluePrint(string targetTab)
         {
-            if (SelectedPlaceholder != null)
+            if (SelectedAvailableBlueprint != null)
             {
-                InsertPlaceholder(SelectedPlaceholder, targetTab);
+                InsertBluePrintItem(SelectedAvailableBlueprint, targetTab);
             }
         }
 
-        private void CurrentPlaceHolder_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void CurrentBluePrint_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(SelectedPlaceholder))
+            if (e.PropertyName == nameof(SelectedAvailableBlueprint))
             {
-                Debug.WriteLine(SelectedPlaceholder?.ParameterName ?? "No selection");
-                AddSelectedPlaceholderCommand.NotifyCanExecuteChanged();
+                Debug.WriteLine(SelectedAvailableBlueprint?.ParameterName ?? "No selection");
+                AddSelectedBlueprintCommand.NotifyCanExecuteChanged();
             }
             else if (e.PropertyName == nameof(SelectedSheetBlueprintElement))
             {
                 Debug.WriteLine(SelectedSheetBlueprintElement?.ParameterName ?? "No Sheet blueprint element selected");
-                RemoveBlueprintElementCommand.NotifyCanExecuteChanged();
+                RemoveSelectedBlueprintCommand.NotifyCanExecuteChanged();
             }
             else if (e.PropertyName == nameof(SelectedViewBlueprintElement))
             {
                 Debug.WriteLine(SelectedViewBlueprintElement?.ParameterName ?? "No View blueprint element selected");
-                RemoveBlueprintElementCommand.NotifyCanExecuteChanged();
+                RemoveSelectedBlueprintCommand.NotifyCanExecuteChanged();
             }
         }
 
         // Public methods to get the formatted naming blueprint for Sheet and View
         public string GetFormattedSheetNaming()
         {
-            return FormatBlueprint(SheetBlueprintElements);
+            return FormatBlueprint(CurrentSheetBlueprint);
         }
 
         public string GetFormattedViewNaming()
         {
-            return FormatBlueprint(ViewBlueprintElements);
+            return FormatBlueprint(CurrentViewBlueprint);
         }
 
-        private string FormatBlueprint(IEnumerable<PlaceholderItem> elements)
+        private string FormatBlueprint(IEnumerable<BluePrintItem> elements)
         {
             if (elements == null || !elements.Any())
                 return string.Empty;
